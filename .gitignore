@@ -9,6 +9,10 @@
 # Visual Studio Code
 .vscode/
 
+# Visual Studio project settings
+.vs/
+
+
 # ASP.NET Secrets (falls verwendet)
 **/secrets.json
 
@@ -34,5 +38,3 @@ docker-compose.override.yml
 *.DS_Store
 Thumbs.db
 
-# Visual Studio project settings
-.vs/
