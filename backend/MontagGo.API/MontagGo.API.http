@@ -1,0 +1,6 @@
+@MontagGo.API_HostAddress = http://localhost:5091
+
+GET {{MontagGo.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

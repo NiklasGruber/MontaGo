@@ -1,0 +1,26 @@
+services:
+  db:
+    image: postgres:16
+    container_name: montago-db
+    environment:
+      POSTGRES_USER: montago_user
+      POSTGRES_PASSWORD: strongpassword
+      POSTGRES_DB: montago
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  api:
+    build:
+      context: ./backend/MontagGo.API
+    container_name: montago-api
+    depends_on:
+      - db
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    ports:
+      - "5000:80"
+
+volumes:
+  pgdata:

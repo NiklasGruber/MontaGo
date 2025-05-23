@@ -1,0 +1,38 @@
+# ---- .NET / ASP.NET Core ----
+**/bin/
+**/obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Visual Studio Code
+.vscode/
+
+# ASP.NET Secrets (falls verwendet)
+**/secrets.json
+
+# Logs
+**/*.log
+
+# EF Core Migrations snapshot cache (optional)
+**/__EFMigrationsHistory/
+
+# ---- Node / React (Vite) ----
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/.DS_Store
+
+# ---- Docker / Container ----
+**/*.pid
+docker-compose.override.yml
+*.env
+.env*
+
+# ---- System ----
+*.DS_Store
+Thumbs.db
+
+# Visual Studio project settings
+.vs/
