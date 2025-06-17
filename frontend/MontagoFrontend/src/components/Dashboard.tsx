@@ -1,5 +1,4 @@
 import React from "react";
-import Sidebar from "./Sidebar";
 
 const Dashboard: React.FC = () => {
   const activeOrders = ["Auftrag 1", "Auftrag 2", "Auftrag 3"];
@@ -7,7 +6,6 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="flex bg-background min-h-screen">
-      <Sidebar />
       <main className="flex-1 p-6">
         <h1 className="text-2xl font-semibold text-primary mb-6">Dashboard</h1>
 
