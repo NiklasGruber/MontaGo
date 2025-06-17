@@ -16,6 +16,9 @@
             CreateMap<Worker, WorkerDto>().ReverseMap();
             CreateMap<User, UserDto>().ReverseMap();
             CreateMap<Order, OrderDto>().ReverseMap();
+            CreateMap<Customer, CustomerDto>().ReverseMap();
+            CreateMap<Role, RoleDto>().ReverseMap();
+            CreateMap<OrderItem, OrderItemDto>().ReverseMap();
         }
     }
 

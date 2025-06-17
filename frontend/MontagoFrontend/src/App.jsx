@@ -5,6 +5,11 @@ import EmployeesPage from "./components/Employees";
 import LoginPage from "./components/LoginForm";
 import ProtectedRoute from "./components/ProtectedRoute";
 import OrderList from "./components/OrderList";
+import RolePage from "./components/Role";
+import CustomerPage from "./components/Customers";
+import AddressPage from "./components/AddressPage";
+import OrderItemPage from "./components/OrderItemPage";
+
 
 function App() {
   const token = localStorage.getItem("token");
@@ -25,7 +30,11 @@ function App() {
                     <Route path="/" element={<Navigate to="/dashboard" />} />
                     <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/employees" element={<EmployeesPage />} />
+                    <Route path="/roles" element={<RolePage />} />
                     <Route path="/orders" element={<OrderList />} />
+                    <Route path="/customers" element={<CustomerPage />} />
+                    <Route path="/addresses" element={<AddressPage />} />
+                    <Route path="/order-items" element={<OrderItemPage />} />
 
                     {/* Add more protected pages here */}
                   </Routes>

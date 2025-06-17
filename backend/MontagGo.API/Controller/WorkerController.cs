@@ -23,24 +23,45 @@ namespace MontagGo.API.Controller
 
         [HttpGet]
         public async Task<IActionResult> GetAll() =>
-            Ok(await _context.Workers.ToListAsync());
+        Ok(_mapper.Map<IEnumerable<WorkerDto>>(await _context.Workers
+          .Where(w => w.DeletedAt == null)
+          .ToListAsync()));
 
         [HttpPost]
         public async Task<IActionResult> Create(WorkerDto worker)
         {
-            _context.Workers.Add(_mapper.Map<Worker>(worker));
+            var workerEntity = _mapper.Map<Worker>(worker);
+            workerEntity.Role = await _context.Roles.FindAsync(worker.RoleId);
+            _context.Workers.Add(workerEntity);
             await _context.SaveChangesAsync();
             return CreatedAtAction(nameof(GetAll), new { id = worker.Id }, worker);
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, WorkerDto worker)
+        public async Task<IActionResult> Update(int id, WorkerDto workerDto)
         {
-            if (id != worker.Id) return BadRequest();
-            _context.Entry(worker).State = EntityState.Modified;
+            if (id != workerDto.Id) return BadRequest("Worker ID mismatch.");
+
+            var existingWorker = await _context.Workers.Include(w => w.Role).FirstOrDefaultAsync(w => w.Id == id);
+            if (existingWorker == null) return NotFound("Worker not found.");
+
+            // Map updated properties from WorkerDto to the existing Worker entity
+            _mapper.Map(workerDto, existingWorker);
+
+            // Update the Role if RoleId has changed
+            if (existingWorker.RoleId != workerDto.RoleId)
+            {
+                var role = await _context.Roles.FindAsync(workerDto.RoleId);
+                if (role == null) return BadRequest("Invalid Role ID.");
+                existingWorker.Role = role;
+            }
+
+            _context.Workers.Update(existingWorker);
             await _context.SaveChangesAsync();
+
             return NoContent();
         }
+
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)

@@ -12,8 +12,8 @@ public class AppDbContext : DbContext
     public DbSet<Worker> Workers { get; set; }
     public DbSet<OrderType> OrderTypes { get; set; }
     public DbSet<User> Users { get; set; }
-
     public DbSet<Customer> Customers { get; set; }
+    public DbSet<Role> Roles { get; set; }
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -45,6 +45,13 @@ public class AppDbContext : DbContext
             .HasMany(o => o.AssignedWorkers)
             .WithMany(w => w.AssignedOrders)
             .UsingEntity(j => j.ToTable("OrderWorkers"));
+
+        // Configure Worker -> Role relationship
+        modelBuilder.Entity<Worker>()
+     .HasOne(w => w.Role)
+     .WithMany()
+     .HasForeignKey(w => w.RoleId)
+     .OnDelete(DeleteBehavior.Restrict);
     }
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

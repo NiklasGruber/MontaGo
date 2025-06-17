@@ -6,12 +6,18 @@ using MontagGo.API.Services;
 using Microsoft.OpenApi.Models;
 using System.Text;
 using MontagGo.API.Mapper;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 var MyAllowSpecificOrigins = "_MontagoSpecificCORS";
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
+
+builder.WebHost.ConfigureKestrel(serverOptions =>
+{
+    serverOptions.Listen(System.Net.IPAddress.Loopback, 5000); // Forces IPv4
+});
 
 // ?? Swagger mit JWT-Support
 builder.Services.AddSwaggerGen(options =>

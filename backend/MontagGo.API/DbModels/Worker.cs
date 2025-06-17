@@ -1,4 +1,6 @@
-﻿namespace MontagGo.API.DbModels
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace MontagGo.API.DbModels
 {
     public class Worker : TrackableEntity
     {
@@ -9,7 +11,9 @@
         public string Email { get; set; }
         public string PhoneNumber { get; set; }
 
-        public string Role { get; set; } // e.g., "Technician", "Supervisor"
+
+        public int? RoleId { get; set; }  // Foreign Key
+        public Role Role { get; set; }   // Navigation Property
 
         // Optional: Reference to assigned orders
         public List<Order> AssignedOrders { get; set; } = new();
