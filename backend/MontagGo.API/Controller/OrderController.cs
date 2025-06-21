@@ -9,7 +9,7 @@ namespace MontagGo.API.Controller
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize] // 🔐 Schützt alle Endpunkte mit JWT
+    [Authorize]
     public class OrdersController : ControllerBase
     {
         private readonly AppDbContext _context;
@@ -25,15 +25,43 @@ namespace MontagGo.API.Controller
         [HttpGet]
         public async Task<IActionResult> GetAllOrders()
         {
-            var orders = await _context.Orders
-                .Include(o => o.Items)
-                .Include(o => o.BillingAddress)
-                .Include(o => o.DeliveryAddress)
-                .Include(o => o.OrderType)
-                .Include(o => o.AssignedWorkers)
-                .ToListAsync();
+            var orders = await _context.Orders.ToListAsync();
 
-            var orderDtos = _mapper.Map<List<OrderDto>>(orders);
+            // Manuelles Mapping der abhängigen Entitäten für das DTO
+            var orderDtos = new List<OrderDto>();
+            foreach (var order in orders)
+            {
+                var dto = _mapper.Map<OrderDto>(order);
+
+                // BillingAddress
+                dto.BillingAddress = _mapper.Map<AddressDto>(
+                    await _context.Addresses.FindAsync(order.BillingAddressId));
+
+                // DeliveryAddress
+                dto.DeliveryAddress = _mapper.Map<AddressDto>(
+                    await _context.Addresses.FindAsync(order.DeliveryAddressId));
+
+                // OrderType
+                dto.OrderType = _mapper.Map<OrderTypeDto>(
+                    await _context.OrderTypes.FindAsync(order.OrderTypeId));
+
+                dto.OrderTypeId = order.OrderTypeId;
+
+                // Items
+                dto.Items = await _context.OrderItems
+                    .Where(oi => oi.OrderId == order.Id)
+                    .Select(oi => _mapper.Map<OrderItemDto>(oi))
+                    .ToListAsync();
+
+                // AssignedWorkers
+                dto.AssignedWorkers = await _context.Workers
+                    .Where(w => order.AssignedWorkers.Contains(w.Id))
+                    .Select(w => _mapper.Map<WorkerDto>(w))
+                    .ToListAsync();
+
+                orderDtos.Add(dto);
+            }
+
             return Ok(orderDtos);
         }
 
@@ -41,34 +69,65 @@ namespace MontagGo.API.Controller
         [HttpGet("{id}")]
         public async Task<IActionResult> GetOrder(int id)
         {
-            var order = await _context.Orders
-                .Include(o => o.Items)
-                .Include(o => o.BillingAddress)
-                .Include(o => o.DeliveryAddress)
-                .Include(o => o.OrderType)
-                .Include(o => o.AssignedWorkers)
-                .FirstOrDefaultAsync(o => o.Id == id);
-
+            var order = await _context.Orders.FirstOrDefaultAsync(o => o.Id == id);
             if (order == null)
                 return NotFound();
 
-            var orderDto = _mapper.Map<OrderDto>(order);
-            return Ok(orderDto);
+            var dto = _mapper.Map<OrderDto>(order);
+
+            dto.BillingAddress = _mapper.Map<AddressDto>(
+                await _context.Addresses.FindAsync(order.BillingAddressId));
+            dto.DeliveryAddress = _mapper.Map<AddressDto>(
+                await _context.Addresses.FindAsync(order.DeliveryAddressId));
+            dto.OrderType = _mapper.Map<OrderTypeDto>(
+                await _context.OrderTypes.FindAsync(order.OrderTypeId));
+            dto.Items = await _context.OrderItems
+                .Where(oi => oi.OrderId == order.Id)
+                .Select(oi => _mapper.Map<OrderItemDto>(oi))
+                .ToListAsync();
+            dto.AssignedWorkers = await _context.Workers
+                .Where(w => order.AssignedWorkers.Contains(w.Id))
+                .Select(w => _mapper.Map<WorkerDto>(w))
+                .ToListAsync();
+
+            return Ok(dto);
         }
 
         // POST: api/orders
         [HttpPost]
-        public async Task<IActionResult> CreateOrder([FromBody] OrderDto orderDto)
+        public async Task<IActionResult> CreateOrder([FromBody] CreateOrderDto orderDto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
             var order = _mapper.Map<Order>(orderDto);
 
+            // Items und AssignedWorkers müssen ggf. separat behandelt werden
+            // Beispiel: Items
+            if (orderDto.ProductIds != null)
+            {
+                foreach (var productId in orderDto.ProductIds)
+                {
+                    var item = new OrderItem
+                    {
+                        ProductId = productId,
+                        OrderId = order.Id,
+                        Quantity = 1 // oder aus DTO, falls vorhanden
+                    };
+                    _context.OrderItems.Add(item);
+                }
+            }
+
+            // Beispiel: AssignedWorkers
+            if (orderDto.WorkerIds != null)
+            {
+                order.AssignedWorkers = orderDto.WorkerIds.ToList();
+            }
+
             _context.Orders.Add(order);
             await _context.SaveChangesAsync();
 
-            var createdDto = _mapper.Map<OrderDto>(order);
+            var createdDto = _mapper.Map<CreateOrderDto>(order);
             return CreatedAtAction(nameof(GetOrder), new { id = order.Id }, createdDto);
         }
 
@@ -89,43 +148,30 @@ namespace MontagGo.API.Controller
         {
             if (id != orderDto.Id) return BadRequest("Order ID mismatch.");
 
-            var existingOrder = await _context.Orders
-                .Include(o => o.Items)
-                .Include(o => o.BillingAddress)
-                .Include(o => o.DeliveryAddress)
-                .Include(o => o.OrderType)
-                .Include(o => o.AssignedWorkers)
-                .FirstOrDefaultAsync(o => o.Id == id);
-
+            var existingOrder = await _context.Orders.FirstOrDefaultAsync(o => o.Id == id);
             if (existingOrder == null) return NotFound("Order not found.");
 
             // Map updated properties from OrderDto to the existing Order entity
             _mapper.Map(orderDto, existingOrder);
 
-            // Update related entities if necessary
-            if (orderDto.BillingAddress != null)
+            // Items und AssignedWorkers ggf. aktualisieren
+            // Beispiel: Items
+            var existingItems = await _context.OrderItems.Where(oi => oi.OrderId == id).ToListAsync();
+            _context.OrderItems.RemoveRange(existingItems);
+            if (orderDto.Items != null)
             {
-                existingOrder.BillingAddress = _mapper.Map<Address>(orderDto.BillingAddress);
+                foreach (var itemDto in orderDto.Items)
+                {
+                    var item = _mapper.Map<OrderItem>(itemDto);
+                    item.OrderId = id;
+                    _context.OrderItems.Add(item);
+                }
             }
 
-            if (orderDto.DeliveryAddress != null)
-            {
-                existingOrder.DeliveryAddress = _mapper.Map<Address>(orderDto.DeliveryAddress);
-            }
-
-            if (orderDto.OrderType != null)
-            {
-                var orderType = await _context.OrderTypes.FindAsync(orderDto.OrderType.Id);
-                if (orderType == null) return BadRequest("Invalid OrderType ID.");
-                existingOrder.OrderType = orderType;
-            }
-
+            // Beispiel: AssignedWorkers
             if (orderDto.AssignedWorkers != null)
             {
-                var workers = await _context.Workers
-                    .Where(w => orderDto.AssignedWorkers.Select(aw => aw.Id).Contains(w.Id))
-                    .ToListAsync();
-                existingOrder.AssignedWorkers = workers;
+                existingOrder.AssignedWorkers = orderDto.AssignedWorkers.Select(w => w.Id).ToList();
             }
 
             _context.Orders.Update(existingOrder);

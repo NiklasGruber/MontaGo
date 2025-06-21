@@ -15,36 +15,12 @@ public class AppDbContext : DbContext
     public DbSet<Customer> Customers { get; set; }
     public DbSet<Role> Roles { get; set; }
 
+    public DbSet<Product> Products { get; set; }
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-
-        // 1:1 Delivery Address
-        modelBuilder.Entity<Order>()
-            .HasOne(o => o.DeliveryAddress)
-            .WithMany()
-            .HasForeignKey(o => o.DeliveryAddressId)
-            .OnDelete(DeleteBehavior.Restrict);
-
-        // 1:1 Billing Address
-        modelBuilder.Entity<Order>()
-            .HasOne(o => o.BillingAddress)
-            .WithMany()
-            .HasForeignKey(o => o.BillingAddressId)
-            .OnDelete(DeleteBehavior.Restrict);
-
-        // 1:n OrderType
-        modelBuilder.Entity<Order>()
-            .HasOne(o => o.OrderType)
-            .WithMany(t => t.Orders)
-            .HasForeignKey(o => o.OrderTypeId);
-
-        // n:m Assigned Workers
-        modelBuilder.Entity<Order>()
-            .HasMany(o => o.AssignedWorkers)
-            .WithMany(w => w.AssignedOrders)
-            .UsingEntity(j => j.ToTable("OrderWorkers"));
 
         // Configure Worker -> Role relationship
         modelBuilder.Entity<Worker>()

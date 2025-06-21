@@ -1,47 +1,48 @@
 import React, { useEffect, useState } from "react";
 import authAxios from "../api/axios";
-
-interface OrderDto {
-  customerId: number;
-  orderTypeId: number;
-  billingAddressId: number;
-  deliveryAddressId: number;
-  itemsId: number[];
-  assignedWorkerIds: number[];
-  createdAt: string;
-}
+import { ProductDto } from "../api/types";
 
 const OrderCreateForm: React.FC<{ onCreated?: () => void }> = ({ onCreated }) => {
   const [customers, setCustomers] = useState<any[]>([]);
   const [addresses, setAddresses] = useState<any[]>([]);
   const [orderTypes, setOrderTypes] = useState<any[]>([]);
   const [workers, setWorkers] = useState<any[]>([]);
-  const [items, setItems] = useState<any[]>([]);
+  const [products, setProducts] = useState<ProductDto[]>([]);
 
-  const [order, setOrder] = useState<OrderDto>({
+  const [order, setOrder] = useState({
     customerId: 0,
     orderTypeId: 0,
     billingAddressId: 0,
     deliveryAddressId: 0,
-    itemsId: [],
-    assignedWorkerIds: [],
-    createdAt: new Date().toISOString(),
+    productIds: [] as number[],
+    workerIds: [] as number[],
   });
+
+  const [selectedProductsWithPrice, setSelectedProductsWithPrice] = useState<
+    { productId: number; price: number }[]
+  >([]);
 
   useEffect(() => {
     const loadData = async () => {
-      const [c, a, o, w, i] = await Promise.all([
+      const [c, a, o, w, p] = await Promise.all([
         authAxios.get("/Customer"),
         authAxios.get("/Address"),
         authAxios.get("/OrderType"),
         authAxios.get("/Worker"),
-        authAxios.get("/OrderItem"),
+        authAxios.get("/Product"),
       ]);
       setCustomers(c.data);
       setAddresses(a.data);
       setOrderTypes(o.data);
       setWorkers(w.data);
-      setItems(i.data);
+      setProducts(p.data);
+
+      if (c.data.length > 0) {
+        setOrder((prev) => ({ ...prev, customerId: c.data[0].id }));
+      }
+      if (o.data.length > 0) {
+        setOrder((prev) => ({ ...prev, orderTypeId: o.data[0].id }));
+      }
     };
 
     loadData();
@@ -55,18 +56,23 @@ const OrderCreateForm: React.FC<{ onCreated?: () => void }> = ({ onCreated }) =>
     }));
   };
 
-  const toggleArrayValue = (field: "itemsId" | "assignedWorkerIds", id: number) => {
+  const toggleWorker = (id: number) => {
     setOrder((prev) => ({
       ...prev,
-      [field]: prev[field].includes(id)
-        ? prev[field].filter((x) => x !== id)
-        : [...prev[field], id],
+      workerIds: prev.workerIds.includes(id)
+        ? prev.workerIds.filter((x) => x !== id)
+        : [...prev.workerIds, id],
     }));
   };
 
   const handleSubmit = async () => {
+    const productIds = selectedProductsWithPrice.map((x) => x.productId);
+    const payload = { ...order, productIds };
+
+    console.log("Sende Bestellung:", payload); // 🔍 Debug-Ausgabe
+
     try {
-      await authAxios.post("/Orders", order);
+      await authAxios.post("/Orders", payload);
       onCreated?.();
       alert("Bestellung erfolgreich erstellt.");
     } catch (err) {
@@ -138,18 +144,52 @@ const OrderCreateForm: React.FC<{ onCreated?: () => void }> = ({ onCreated }) =>
       </div>
 
       <div className="mt-4">
-        <h3 className="font-semibold text-sm mb-1">📦 Produkte auswählen</h3>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
-          {items.map((item) => (
-            <label key={item.id} className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={order.itemsId.includes(item.id)}
-                onChange={() => toggleArrayValue("itemsId", item.id)}
-              />
-              {item.productName}
-            </label>
-          ))}
+        <h3 className="font-semibold text-sm mb-1">📦 Produkte mit Preis</h3>
+        <div className="grid grid-cols-1 gap-3 text-sm">
+          {products.map((product) => {
+            const entry = selectedProductsWithPrice.find((x) => x.productId === product.id);
+            return (
+              <div key={product.id} className="flex items-center gap-4">
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={!!entry}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedProductsWithPrice((prev) => [
+                          ...prev,
+                          { productId: product.id, price: 0 },
+                        ]);
+                      } else {
+                        setSelectedProductsWithPrice((prev) =>
+                          prev.filter((x) => x.productId !== product.id)
+                        );
+                      }
+                    }}
+                  />
+                  {product.name}
+                </label>
+
+                {entry && (
+                  <input
+                    type="number"
+                    min={0}
+                    placeholder="Preis"
+                    className="border p-1 rounded w-32"
+                    value={entry.price}
+                    onChange={(e) => {
+                      const newPrice = parseFloat(e.target.value);
+                      setSelectedProductsWithPrice((prev) =>
+                        prev.map((x) =>
+                          x.productId === product.id ? { ...x, price: newPrice } : x
+                        )
+                      );
+                    }}
+                  />
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -160,8 +200,8 @@ const OrderCreateForm: React.FC<{ onCreated?: () => void }> = ({ onCreated }) =>
             <label key={w.id} className="flex items-center gap-2">
               <input
                 type="checkbox"
-                checked={order.assignedWorkerIds.includes(w.id)}
-                onChange={() => toggleArrayValue("assignedWorkerIds", w.id)}
+                checked={order.workerIds.includes(w.id)}
+                onChange={() => toggleWorker(w.id)}
               />
               {w.firstName} {w.lastName}
             </label>

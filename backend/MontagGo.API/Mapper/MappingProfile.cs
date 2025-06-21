@@ -15,10 +15,15 @@
             CreateMap<OrderType, OrderTypeDto>().ReverseMap();
             CreateMap<Worker, WorkerDto>().ReverseMap();
             CreateMap<User, UserDto>().ReverseMap();
-            CreateMap<Order, OrderDto>().ReverseMap();
             CreateMap<Customer, CustomerDto>().ReverseMap();
             CreateMap<Role, RoleDto>().ReverseMap();
             CreateMap<OrderItem, OrderItemDto>().ReverseMap();
+            CreateMap<Product, ProductDto>().ReverseMap();
+            CreateMap<Order, CreateOrderDto>().ReverseMap();
+
+            CreateMap<Order, OrderDto>()
+            .ForMember(dest => dest.AssignedWorkers, opt => opt.Ignore())
+            .ReverseMap();
         }
     }
 

@@ -9,6 +9,7 @@ const OrderList: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [orderTypes, setOrderTypes] = useState<any[]>([]);
 
   const [filterCustomerId, setFilterCustomerId] = useState<number | null>(null);
   const [sortBy, setSortBy] = useState<"date" | "customer">("date");
@@ -25,6 +26,19 @@ const OrderList: React.FC = () => {
     }
   };
 
+  const fetchOrderTypes = async () => {
+  try {
+    const response = await authAxios.get("/OrderType");
+    setOrderTypes(response.data);
+  } catch (err) {
+    console.error("Fehler beim Laden der Auftragstypen", err);
+  }
+};
+
+const getOrderTypeName = (orderTypeId: number) => {
+  return orderTypes.find((t) => t.id === orderTypeId)?.name ?? `#${orderTypeId}`;
+};
+
   const fetchCustomers = async () => {
     try {
       const response = await authAxios.get<CustomerDto[]>("/Customer");
@@ -37,6 +51,8 @@ const OrderList: React.FC = () => {
   useEffect(() => {
     fetchOrders();
     fetchCustomers();
+      fetchOrderTypes();
+
   }, []);
 
   // Filter & Sortierlogik
@@ -53,6 +69,7 @@ const OrderList: React.FC = () => {
   }
 
   const getCustomerName = (customerId: number) => {
+    console.log("Kunden-ID:", customerId); // Debug-Ausgabe
     return customers.find((c) => c.id === customerId)?.companyName ?? `#${customerId}`;
   };
 
@@ -118,7 +135,8 @@ const OrderList: React.FC = () => {
             >
               <p className="text-sm text-gray-700">📄 Bestellung #{order.id}</p>
               <p className="text-xs text-gray-500">
-                Kunde: {getCustomerName(order.customerId)}, Typ: {order.orderTypeId}
+                {console.log("Kunden-ID in OrderList:", order.id)}
+                              Kunde: {getCustomerName(order.customerId)}, Typ: {getOrderTypeName(order.orderTypeId)}
               </p>
               <p className="text-xs text-gray-400">
                 Erstellt: {new Date(order.createdAt).toLocaleString()}

@@ -9,6 +9,7 @@ export interface AddressDto {
 }
 
 export interface OrderTypeDto {
+  id?: number;
   name?: string;
   description?: string;
 }
@@ -61,4 +62,10 @@ export interface CustomerDto {
   email: string;
   phoneNumber: string;
   addressId?: number;
+}
+
+export interface ProductDto {
+  id: number;
+  name: string;
+  description: string;
 }

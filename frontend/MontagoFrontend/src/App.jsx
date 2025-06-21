@@ -9,6 +9,7 @@ import RolePage from "./components/Role";
 import CustomerPage from "./components/Customers";
 import AddressPage from "./components/AddressPage";
 import OrderItemPage from "./components/OrderItemPage";
+import OrderTypePage from "./components/OrderTypePage";
 
 
 function App() {
@@ -35,6 +36,7 @@ function App() {
                     <Route path="/customers" element={<CustomerPage />} />
                     <Route path="/addresses" element={<AddressPage />} />
                     <Route path="/order-items" element={<OrderItemPage />} />
+                    <Route path="/order-types" element={<OrderTypePage />} />
 
                     {/* Add more protected pages here */}
                   </Routes>

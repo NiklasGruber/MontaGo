@@ -1,48 +1,44 @@
 import React, { useEffect, useState } from "react";
 import authAxios from "../api/axios";
-import { ProductDto } from "../api/types";
+import { OrderTypeDto } from "../api/types";
 
-const ProductPage: React.FC = () => {
-  const [products, setProducts] = useState<ProductDto[]>([]);
+const OrderTypePage: React.FC = () => {
+  const [types, setTypes] = useState<OrderTypeDto[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<ProductDto>({
-    id: 0,
-    name: "",
-    description: "",
-  });
+  const [selected, setSelected] = useState<OrderTypeDto>({ name: "", description: "" });
 
-  const fetchProducts = async () => {
+  const fetchTypes = async () => {
     try {
-      const response = await authAxios.get<ProductDto[]>("/Product");
-      setProducts(response.data);
+      const res = await authAxios.get<OrderTypeDto[]>("/OrderType");
+      setTypes(res.data);
     } catch (err) {
-      console.error("Fehler beim Laden der Produkte", err);
+      console.error("Fehler beim Laden der Auftragstypen", err);
     }
   };
 
   useEffect(() => {
-    fetchProducts();
+    fetchTypes();
   }, []);
 
   const handleSubmit = async () => {
     try {
-      if (isEditing && selectedProduct.id !== undefined) {
-        await authAxios.put(`/Product/${selectedProduct.id}`, selectedProduct);
+      if (isEditing && selected.id !== undefined) {
+        await authAxios.put(`/OrderType/${selected.id}`, selected);
       } else {
-        await authAxios.post("/Product", selectedProduct);
+        await authAxios.post("/OrderType", selected);
       }
       setShowModal(false);
-      setSelectedProduct({id: 0, name: "", description: "" });
+      setSelected({ name: "", description: "" });
       setIsEditing(false);
-      fetchProducts();
+      fetchTypes();
     } catch (err) {
       console.error("Fehler beim Speichern", err);
     }
   };
 
-  const handleEdit = (product: ProductDto) => {
-    setSelectedProduct(product);
+  const handleEdit = (type: OrderTypeDto) => {
+    setSelected(type);
     setIsEditing(true);
     setShowModal(true);
   };
@@ -50,8 +46,8 @@ const ProductPage: React.FC = () => {
   const handleDelete = async (id?: number) => {
     if (!id || !window.confirm("Wirklich löschen?")) return;
     try {
-      await authAxios.delete(`/Product/${id}`);
-      fetchProducts();
+      await authAxios.delete(`/OrderType/${id}`);
+      fetchTypes();
     } catch (err) {
       console.error("Fehler beim Löschen", err);
     }
@@ -59,40 +55,37 @@ const ProductPage: React.FC = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setSelectedProduct((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setSelected((prev) => ({ ...prev, [name]: value }));
   };
 
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold text-primary">Produkte</h1>
+        <h1 className="text-2xl font-bold text-primary">Auftragstypen</h1>
         <button
           onClick={() => {
-            setSelectedProduct({id:0, name: "", description: "" });
+            setSelected({ name: "", description: "" });
             setIsEditing(false);
             setShowModal(true);
           }}
           className="bg-primary text-white px-4 py-2 rounded hover:bg-accent"
         >
-          + Neues Produkt
+          + Neuer Typ
         </button>
       </div>
 
       <ul className="space-y-2">
-        {products.map((p) => (
+        {types.map((type) => (
           <li
-            key={p.id}
+            key={type.id}
             className="p-4 bg-white rounded shadow border border-neutral relative"
           >
             <div className="absolute top-2 right-2 flex gap-2 text-sm">
-              <button onClick={() => handleEdit(p)} title="Bearbeiten">✏️</button>
-              <button onClick={() => handleDelete(p.id)} title="Löschen">🗑️</button>
+              <button onClick={() => handleEdit(type)} title="Bearbeiten">✏️</button>
+              <button onClick={() => handleDelete(type.id)} title="Löschen">🗑️</button>
             </div>
-            <p className="text-sm font-medium text-neutral">{p.name}</p>
-            <p className="text-xs text-gray-500">{p.description}</p>
+            <p className="font-medium text-neutral">{type.name}</p>
+            <p className="text-sm text-gray-500">{type.description}</p>
           </li>
         ))}
       </ul>
@@ -101,14 +94,14 @@ const ProductPage: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded shadow w-full max-w-md">
             <h2 className="text-lg font-bold mb-4">
-              {isEditing ? "Produkt bearbeiten" : "Neues Produkt"}
+              {isEditing ? "Typ bearbeiten" : "Neuer Auftragstyp"}
             </h2>
 
             <input
               type="text"
               name="name"
               placeholder="Name"
-              value={selectedProduct.name}
+              value={selected.name}
               onChange={handleChange}
               className="border p-2 rounded w-full mb-3"
             />
@@ -116,7 +109,7 @@ const ProductPage: React.FC = () => {
             <textarea
               name="description"
               placeholder="Beschreibung"
-              value={selectedProduct.description}
+              value={selected.description}
               onChange={handleChange}
               className="border p-2 rounded w-full mb-3"
             />
@@ -142,4 +135,4 @@ const ProductPage: React.FC = () => {
   );
 };
 
-export default ProductPage;
+export default OrderTypePage;
