@@ -2,6 +2,7 @@
 FROM node:20 AS frontend-build
 WORKDIR /app
 COPY frontend/MontagoFrontend/ ./
+RUN npm install
 RUN npm run build
 
 # === Build Backend ===
