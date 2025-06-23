@@ -66,8 +66,7 @@ builder.Services.AddCors(options =>
                     "https://montago-frontend.onrender.com" // falls du Frontend separat deployst
                 )
                 .AllowAnyHeader()
-                .AllowAnyMethod()
-            .AllowCredentials();
+                .AllowAnyMethod();
         });
 });
 
