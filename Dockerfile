@@ -8,10 +8,10 @@ RUN npm run build
 # === Build Backend ===
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
-COPY backend/MontaGo.API/*.csproj ./MontaGo.API/
-WORKDIR /src/MontaGo.API
+COPY backend/MontagGo.API/*.csproj ./MontagGo.API/
+WORKDIR /src/MontagGo.API
 RUN dotnet restore
-COPY backend/MontaGo.API/. .
+COPY backend/MontagGo.API/. .
 RUN dotnet publish -c Release -o /app/publish
 
 # === Combine Frontend + Backend ===
