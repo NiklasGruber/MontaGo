@@ -7,6 +7,7 @@ using Microsoft.OpenApi.Models;
 using System.Text;
 using MontagGo.API.Mapper;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 var MyAllowSpecificOrigins = "_MontagoSpecificCORS";
@@ -52,17 +53,23 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 //CORS
+MyAllowSpecificOrigins = "_MontagoCorsPolicy";
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(name: MyAllowSpecificOrigins,
         policy =>
         {
             policy
-                .WithOrigins("http://localhost:5173", "http://[::1]:5173")
+                .WithOrigins(
+                    "https://montago.onrender.com",         // das ist deine Render-URL
+                    "https://montago-frontend.onrender.com" // falls du Frontend separat deployst
+                )
                 .AllowAnyHeader()
                 .AllowAnyMethod();
         });
 });
+
 
 // ?? JWT Auth
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
@@ -118,10 +125,33 @@ if (app.Environment.IsDevelopment())
 }
 
 // ?? Middleware
+app.UseDefaultFiles();
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "frontend")),
+    RequestPath = ""
+});
+
+app.Use(async (context, next) =>
+{
+    await next();
+
+    // Wenn die Anfrage 404 ist und KEINE API-Route oder statische Datei
+    if (context.Response.StatusCode == 404 &&
+        !Path.HasExtension(context.Request.Path.Value) &&
+        !context.Request.Path.Value.StartsWith("/api"))
+    {
+        context.Request.Path = "/index.html";
+        await next();
+    }
+});
+
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseCors(MyAllowSpecificOrigins);
+
+
 
 app.MapControllers();
 app.Run();
