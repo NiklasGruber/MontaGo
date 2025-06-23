@@ -132,26 +132,13 @@ app.UseStaticFiles(new StaticFileOptions
     RequestPath = ""
 });
 
-app.Use(async (context, next) =>
-{
-    await next();
-
-    // Wenn die Anfrage 404 ist und KEINE API-Route oder statische Datei
-    if (context.Response.StatusCode == 404 &&
-        !Path.HasExtension(context.Request.Path.Value) &&
-        !context.Request.Path.Value.StartsWith("/api"))
-    {
-        context.Request.Path = "/index.html";
-        await next();
-    }
-});
-
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseCors(MyAllowSpecificOrigins);
 
-
-
 app.MapControllers();
+
+// SPA-Fallback nach Routing
+app.MapFallbackToFile("/index.html");
 app.Run();
