@@ -1,5 +1,3 @@
-version: '3.4'
-
 services:
   montago-db:
     image: postgres:15
