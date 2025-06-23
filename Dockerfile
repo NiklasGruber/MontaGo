@@ -1,8 +1,7 @@
 # === Build Frontend ===
 FROM node:20 AS frontend-build
 WORKDIR /app
-COPY frontend/MontagoFrontend/ ./ # nur den Frontend-Ordner
-RUN npm install
+COPY frontend/MontagoFrontend/ ./
 RUN npm run build
 
 # === Build Backend ===
