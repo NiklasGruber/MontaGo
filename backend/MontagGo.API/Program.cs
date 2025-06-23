@@ -66,7 +66,8 @@ builder.Services.AddCors(options =>
                     "https://montago-frontend.onrender.com" // falls du Frontend separat deployst
                 )
                 .AllowAnyHeader()
-                .AllowAnyMethod();
+                .AllowAnyMethod()
+            .AllowCredentials();
         });
 });
 
@@ -132,10 +133,11 @@ app.UseStaticFiles(new StaticFileOptions
     RequestPath = ""
 });
 
+app.UseCors(MyAllowSpecificOrigins);
+
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseCors(MyAllowSpecificOrigins);
 
 app.MapControllers();
 
