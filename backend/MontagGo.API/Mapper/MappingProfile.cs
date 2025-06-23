@@ -22,8 +22,10 @@
             CreateMap<Order, CreateOrderDto>().ReverseMap();
 
             CreateMap<Order, OrderDto>()
-            .ForMember(dest => dest.AssignedWorkers, opt => opt.Ignore())
-            .ReverseMap();
+       .ForMember(dest => dest.AssignedWorkers, opt => opt.Ignore())
+       .ReverseMap()
+       .ForMember(dest => dest.AssignedWorkers, opt => opt.Ignore());
+
         }
     }
 

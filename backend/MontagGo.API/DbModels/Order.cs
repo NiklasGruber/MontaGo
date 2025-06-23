@@ -3,9 +3,14 @@
     public class Order : TrackableEntity
     {
         public int Id { get; set; }
-
+        public string Name { get; set; } = string.Empty;
         public int CustomerId { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        public DateTime StartDate { get; set; }
+        public DateTime DueDate { get; set; }
+
+        public DateTime EndDate { get; set; }
 
         public List<int> Items { get; set; } = new();
 

@@ -30,7 +30,8 @@ export interface WorkerDto {
 }
 
 export interface OrderDto {
-  id?: number;
+  id: number;
+  name: string;
   customerId: number;
   orderTypeId: number;
   billingAddressId: number;
@@ -38,6 +39,10 @@ export interface OrderDto {
   itemsId: number[];
   assignedWorkerIds: number[];
   createdAt: string;
+  startDate?: string;
+  dueDate: string;
+  endDate?: string;
+    active: boolean;
 }
 
 

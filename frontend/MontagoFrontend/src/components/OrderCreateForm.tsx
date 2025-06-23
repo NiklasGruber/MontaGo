@@ -1,22 +1,30 @@
 import React, { useEffect, useState } from "react";
 import authAxios from "../api/axios";
-import { ProductDto } from "../api/types";
+import { ProductDto, OrderDto } from "../api/types";
 
-const OrderCreateForm: React.FC<{ onCreated?: () => void }> = ({ onCreated }) => {
+interface OrderCreateFormProps {
+  onCreated?: () => void;
+  order?: OrderDto;
+}
+
+const OrderCreateForm: React.FC<OrderCreateFormProps> = ({ onCreated, order }) => {
   const [customers, setCustomers] = useState<any[]>([]);
   const [addresses, setAddresses] = useState<any[]>([]);
   const [orderTypes, setOrderTypes] = useState<any[]>([]);
   const [workers, setWorkers] = useState<any[]>([]);
   const [products, setProducts] = useState<ProductDto[]>([]);
 
-  const [order, setOrder] = useState({
-    customerId: 0,
-    orderTypeId: 0,
-    billingAddressId: 0,
-    deliveryAddressId: 0,
-    productIds: [] as number[],
-    workerIds: [] as number[],
-  });
+const [orderState, setOrder] = useState({
+  name: order?.name ?? "",
+  startDate: order?.startDate ?? "",
+  dueDate: order?.dueDate ?? "",
+  customerId: order?.customerId ?? 0,
+  orderTypeId: order?.orderTypeId ?? 0,
+  billingAddressId: order?.billingAddressId ?? 0,
+  deliveryAddressId: order?.deliveryAddressId ?? 0,
+  productIds: order?.itemsId ?? [],
+  workerIds: order?.assignedWorkerIds ?? [],
+});
 
   const [selectedProductsWithPrice, setSelectedProductsWithPrice] = useState<
     { productId: number; price: number }[]
@@ -67,7 +75,12 @@ const OrderCreateForm: React.FC<{ onCreated?: () => void }> = ({ onCreated }) =>
 
   const handleSubmit = async () => {
     const productIds = selectedProductsWithPrice.map((x) => x.productId);
-    const payload = { ...order, productIds };
+  const payload = { 
+      ...orderState, 
+      productIds,
+      startDate: orderState.startDate === "" ? null : orderState.startDate,
+      dueDate: orderState.dueDate === "" ? null : orderState.dueDate,
+    };    
 
     console.log("Sende Bestellung:", payload); // 🔍 Debug-Ausgabe
 
@@ -86,9 +99,17 @@ const OrderCreateForm: React.FC<{ onCreated?: () => void }> = ({ onCreated }) =>
       <h2 className="text-xl font-bold mb-4 text-primary">Neue Bestellung</h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <input
+    name="name"
+    type="text"
+    placeholder="Auftragsname"
+    value={orderState.name}
+    onChange={handleChange}
+    className="border p-2 rounded"
+  />
         <select
           name="customerId"
-          value={order.customerId}
+          value={orderState.customerId}
           onChange={handleChange}
           className="border p-2 rounded"
         >
@@ -102,7 +123,7 @@ const OrderCreateForm: React.FC<{ onCreated?: () => void }> = ({ onCreated }) =>
 
         <select
           name="orderTypeId"
-          value={order.orderTypeId}
+          value={orderState.orderTypeId}
           onChange={handleChange}
           className="border p-2 rounded"
         >
@@ -116,7 +137,7 @@ const OrderCreateForm: React.FC<{ onCreated?: () => void }> = ({ onCreated }) =>
 
         <select
           name="billingAddressId"
-          value={order.billingAddressId}
+          value={orderState.billingAddressId}
           onChange={handleChange}
           className="border p-2 rounded"
         >
@@ -130,7 +151,7 @@ const OrderCreateForm: React.FC<{ onCreated?: () => void }> = ({ onCreated }) =>
 
         <select
           name="deliveryAddressId"
-          value={order.deliveryAddressId}
+          value={orderState.deliveryAddressId}
           onChange={handleChange}
           className="border p-2 rounded"
         >
@@ -142,6 +163,21 @@ const OrderCreateForm: React.FC<{ onCreated?: () => void }> = ({ onCreated }) =>
           ))}
         </select>
       </div>
+
+  <input
+    name="startDate"
+    type="date"
+    value={orderState.startDate}
+    onChange={handleChange}
+    className="border p-2 rounded"
+  />
+  <input
+    name="dueDate"
+    type="date"
+    value={orderState.dueDate}
+    onChange={handleChange}
+    className="border p-2 rounded"
+  />
 
       <div className="mt-4">
         <h3 className="font-semibold text-sm mb-1">📦 Produkte mit Preis</h3>
@@ -200,7 +236,7 @@ const OrderCreateForm: React.FC<{ onCreated?: () => void }> = ({ onCreated }) =>
             <label key={w.id} className="flex items-center gap-2">
               <input
                 type="checkbox"
-                checked={order.workerIds.includes(w.id)}
+                checked={orderState.workerIds.includes(w.id)}
                 onChange={() => toggleWorker(w.id)}
               />
               {w.firstName} {w.lastName}

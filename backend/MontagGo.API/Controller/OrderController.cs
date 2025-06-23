@@ -31,6 +31,9 @@ namespace MontagGo.API.Controller
             var orderDtos = new List<OrderDto>();
             foreach (var order in orders)
             {
+                if (order.IsDeleted)
+                    continue;
+
                 var dto = _mapper.Map<OrderDto>(order);
 
                 // BillingAddress
@@ -58,6 +61,12 @@ namespace MontagGo.API.Controller
                     .Where(w => order.AssignedWorkers.Contains(w.Id))
                     .Select(w => _mapper.Map<WorkerDto>(w))
                     .ToListAsync();
+
+                dto.StartDate = order.StartDate == DateTime.MinValue ? null : order.StartDate;
+                dto.DueDate = order.DueDate == DateTime.MinValue ? null : order.DueDate;
+                dto.EndDate = order.EndDate == DateTime.MinValue ? null : order.EndDate;
+
+                dto.Active = order.DueDate != DateTime.MinValue && order.StartDate != DateTime.MinValue && order.DueDate > DateTime.UtcNow || order.EndDate < DateTime.UtcNow && order.EndDate != DateTime.MinValue;
 
                 orderDtos.Add(dto);
             }
@@ -124,6 +133,11 @@ namespace MontagGo.API.Controller
                 order.AssignedWorkers = orderDto.WorkerIds.ToList();
             }
 
+            //CheckDates
+            order.StartDate = (orderDto.StartDate ?? DateTime.MinValue).ToUniversalTime();
+            order.DueDate = (orderDto.DueDate ?? DateTime.MinValue).ToUniversalTime();
+            order.EndDate = (orderDto.EndDate ?? DateTime.MinValue).ToUniversalTime();
+
             _context.Orders.Add(order);
             await _context.SaveChangesAsync();
 
@@ -151,8 +165,14 @@ namespace MontagGo.API.Controller
             var existingOrder = await _context.Orders.FirstOrDefaultAsync(o => o.Id == id);
             if (existingOrder == null) return NotFound("Order not found.");
 
-            // Map updated properties from OrderDto to the existing Order entity
-            _mapper.Map(orderDto, existingOrder);
+            try
+            {
+                _mapper.Map(orderDto, existingOrder);
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine(e);
+            }
 
             // Items und AssignedWorkers ggf. aktualisieren
             // Beispiel: Items
