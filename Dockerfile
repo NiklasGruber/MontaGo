@@ -11,7 +11,7 @@ COPY . ./
 RUN dotnet publish ./backend/MontagGo.API/MontagGo.API.csproj -c Release -o out
 
 # build frontend
-FROM node:18 AS frontend-build
+FROM node:20 AS frontend-build
 WORKDIR /frontend
 COPY ./frontend/MontagoFrontend/package*.json ./
 RUN npm install
