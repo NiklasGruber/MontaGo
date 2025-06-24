@@ -3,19 +3,19 @@ FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build-env
 WORKDIR /app
 
 # copy csproj and restore as distinct layers
-COPY ./MontaGo/backend/MontagGo.API/*.csproj ./MontaGo/backend/MontagGo.API/
-RUN dotnet restore ./MontaGo/backend/MontagGo.API/MontagGo.API.csproj
+COPY ./backend/MontagGo.API/*.csproj ./backend/MontagGo.API/
+RUN dotnet restore ./backend/MontagGo.API/MontagGo.API.csproj
 
 # copy everything else and build
 COPY . ./
-RUN dotnet publish ./MontaGo/backend/MontagGo.API/MontagGo.API.csproj -c Release -o out
+RUN dotnet publish ./backend/MontagGo.API/MontagGo.API.csproj -c Release -o out
 
 # build frontend
 FROM node:18 AS frontend-build
 WORKDIR /frontend
-COPY ./MontaGo/frontend/MontagoFrontend/package*.json ./
+COPY ./frontend/MontagoFrontend/package*.json ./
 RUN npm install
-COPY ./MontaGo/frontend/MontagoFrontend ./
+COPY ./frontend/MontagoFrontend ./
 RUN npm run build
 
 # final stage/image
