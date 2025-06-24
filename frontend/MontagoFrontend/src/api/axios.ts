@@ -2,7 +2,8 @@ import axios from "axios";
 
 // Set base URL for all API calls
 const authAxios = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000",
+  baseURL: "https://montago.onrender.com/api", // gleiche Domain wie der WebService
+  withCredentials: true
 });
 
 // Automatically attach JWT token to Authorization header

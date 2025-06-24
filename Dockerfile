@@ -1,28 +1,26 @@
-# === Build Frontend ===
-FROM node:20 AS frontend-build
+# build environment
+FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build-env
 WORKDIR /app
-COPY frontend/MontagoFrontend/ ./
+
+# copy csproj and restore as distinct layers
+COPY ./MontaGo/backend/MontagGo.API/*.csproj ./MontaGo/backend/MontagGo.API/
+RUN dotnet restore ./MontaGo/backend/MontagGo.API/MontagGo.API.csproj
+
+# copy everything else and build
+COPY . ./
+RUN dotnet publish ./MontaGo/backend/MontagGo.API/MontagGo.API.csproj -c Release -o out
+
+# build frontend
+FROM node:18 AS frontend-build
+WORKDIR /frontend
+COPY ./MontaGo/frontend/MontagoFrontend/package*.json ./
 RUN npm install
+COPY ./MontaGo/frontend/MontagoFrontend ./
 RUN npm run build
 
-# === Build Backend ===
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-WORKDIR /src
-COPY backend/MontagGo.API/*.csproj ./MontagGo.API/
-WORKDIR /src/MontagGo.API
-RUN dotnet restore
-COPY backend/MontagGo.API/. .
-RUN dotnet publish -c Release -o /app/publish
-
-# === Combine Frontend + Backend ===
-FROM mcr.microsoft.com/dotnet/aspnet:8.0
+# final stage/image
+FROM mcr.microsoft.com/dotnet/aspnet:7.0
 WORKDIR /app
-
-# Backend veröffentlichen
-COPY --from=build /app/publish .
-
-# Frontend-Build in Unterordner
-COPY --from=frontend-build /app/dist ./frontend
-
-EXPOSE 80
+COPY --from=build-env /app/out ./
+COPY --from=frontend-build /frontend/dist ./frontend
 ENTRYPOINT ["dotnet", "MontagGo.API.dll"]

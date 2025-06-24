@@ -61,10 +61,7 @@ builder.Services.AddCors(options =>
         policy =>
         {
             policy
-                .WithOrigins(
-                    "https://montago.onrender.com",         // das ist deine Render-URL
-                    "https://montago-frontend.onrender.com" // falls du Frontend separat deployst
-                )
+                .WithOrigins("https://montago.onrender.com")
                 .AllowAnyHeader()
                 .AllowAnyMethod();
         });
@@ -131,7 +128,6 @@ app.UseStaticFiles(new StaticFileOptions
     FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "frontend")),
     RequestPath = ""
 });
-
 app.UseCors(MyAllowSpecificOrigins);
 
 app.UseRouting();
