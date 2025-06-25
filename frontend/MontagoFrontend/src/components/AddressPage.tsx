@@ -51,9 +51,9 @@ const AddressPage: React.FC = () => {
   const handleSubmit = async () => {
     try {
       if (isEditing) {
-        await authAxios.put(`/Address/${selectedAddress.id}`, selectedAddress);
+        await authAxios.put(`/api/Address/${selectedAddress.id}`, selectedAddress);
       } else {
-        await authAxios.post("/Address", selectedAddress);
+        await authAxios.post("/api/Address", selectedAddress);
       }
       setShowModal(false);
       resetForm();
@@ -72,7 +72,7 @@ const AddressPage: React.FC = () => {
   const handleDelete = async (id: number) => {
     if (!window.confirm("Adresse wirklich löschen?")) return;
     try {
-      await authAxios.delete(`/Address/${id}`);
+      await authAxios.delete(`/api/Address/${id}`);
       fetchAddresses();
     } catch (error) {
       console.error("Fehler beim Löschen", error);

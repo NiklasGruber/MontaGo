@@ -20,7 +20,7 @@ const Dashboard: React.FC = () => {
 
   const fetchOrders = async () => {
     try {
-      const response = await authAxios.get("/Orders");
+      const response = await authAxios.get("/api/Orders");
       setOrders(response.data);
     } catch (err) {
       console.error("Fehler beim Laden der Termine", err);
@@ -75,7 +75,7 @@ const handleReceive = async (info: EventReceiveArg) => {
       endDate: dueDate,
     };
 
-    await authAxios.put(`/Orders/${id}`, updated);
+    await authAxios.put(`/api/Orders/${id}`, updated);
     await fetchOrders();
     setCalendarKey((prev) => prev + 1);
   } catch (err) {

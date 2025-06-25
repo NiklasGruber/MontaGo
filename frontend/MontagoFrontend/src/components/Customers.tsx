@@ -30,7 +30,7 @@ const CustomerPage: React.FC = () => {
 
   const fetchCustomers = async () => {
     try {
-      const response = await authAxios.get<CustomerDto[]>("/Customer");
+      const response = await authAxios.get<CustomerDto[]>("/api/Customer");
       setCustomers(response.data);
     } catch (error) {
       console.error("Error loading customers", error);
@@ -39,7 +39,7 @@ const CustomerPage: React.FC = () => {
 
   const fetchAddresses = async () => {
     try {
-      const response = await authAxios.get<AddressDto[]>("/Address");
+      const response = await authAxios.get<AddressDto[]>("/api/Address");
       setAddresses(response.data);
     } catch (error) {
       console.error("Error loading addresses", error);
