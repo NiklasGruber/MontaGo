@@ -21,7 +21,7 @@ const Sidebar: React.FC = () => {
           Dashboard
         </NavLink>
         <NavLink to="/orders" className={({ isActive }) => isActive ? `${navItemClass} ${activeClass}` : navItemClass}>
-          Orders
+          Termine
         </NavLink>
         <NavLink to="/order-items" className={({ isActive }) => isActive ? `${navItemClass} ${activeClass}` : navItemClass}>
           OrderItems

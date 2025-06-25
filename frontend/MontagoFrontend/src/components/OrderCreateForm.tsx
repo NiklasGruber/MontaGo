@@ -83,21 +83,21 @@ const [orderState, setOrder] = useState({
       dueDate: orderState.dueDate === "" ? null : orderState.dueDate,
     };    
 
-    console.log("Sende Bestellung:", payload); // 🔍 Debug-Ausgabe
+    console.log("Sende Termine:", payload); // 🔍 Debug-Ausgabe
 
     try {
       await authAxios.post("/Orders", payload);
       onCreated?.();
-      alert("Bestellung erfolgreich erstellt.");
+      alert("Termine erfolgreich erstellt.");
     } catch (err) {
-      console.error("Fehler beim Erstellen der Bestellung", err);
-      alert("Fehler beim Erstellen der Bestellung.");
+      console.error("Fehler beim Erstellen der Termine", err);
+      alert("Fehler beim Erstellen der Termine.");
     }
   };
 
   return (
     <div className="p-6 bg-white rounded shadow">
-      <h2 className="text-xl font-bold mb-4 text-primary">Neue Bestellung</h2>
+      <h2 className="text-xl font-bold mb-4 text-primary">Neue Termine</h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <input
@@ -251,7 +251,7 @@ const [orderState, setOrder] = useState({
           onClick={handleSubmit}
           className="bg-primary text-white px-6 py-2 rounded hover:bg-accent"
         >
-          Bestellung erstellen
+          Termine erstellen
         </button>
       </div>
     </div>

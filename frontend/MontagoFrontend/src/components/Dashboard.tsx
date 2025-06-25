@@ -23,7 +23,7 @@ const Dashboard: React.FC = () => {
       const response = await authAxios.get("/Orders");
       setOrders(response.data);
     } catch (err) {
-      console.error("Fehler beim Laden der Bestellungen", err);
+      console.error("Fehler beim Laden der Termine", err);
     }
   };
 
@@ -79,7 +79,7 @@ const handleReceive = async (info: EventReceiveArg) => {
     await fetchOrders();
     setCalendarKey((prev) => prev + 1);
   } catch (err) {
-    console.error("Fehler beim Aktualisieren der Bestellung", err);
+    console.error("Fehler beim Aktualisieren der Termine", err);
   } finally {
     isProcessing.current = false;
   }
@@ -118,7 +118,7 @@ const handleReceive = async (info: EventReceiveArg) => {
     await fetchOrders();
     setCalendarKey((prev) => prev + 1);
   } catch (err) {
-    console.error("Fehler beim Anpassen der Bestellung per Resize", err);
+    console.error("Fehler beim Anpassen der Termine per Resize", err);
   }
 };
 
@@ -142,7 +142,7 @@ const handleDrop = async (info: any) => {
     await fetchOrders();
     setCalendarKey((prev) => prev + 1);
   } catch (err) {
-    console.error("Fehler beim Verschieben der Bestellung", err);
+    console.error("Fehler beim Verschieben der Termine", err);
   }
 };
 
@@ -182,7 +182,7 @@ const handleDrop = async (info: any) => {
             </button>
 
             <h2 className="text-lg font-bold mb-2">
-              Bestellung #{selectedOrder.id}
+              Termine #{selectedOrder.id}
             </h2>
             <p className="text-sm font-medium mb-1">{selectedOrder.name}</p>
             <p className="text-sm text-gray-600">
@@ -204,7 +204,7 @@ const handleDrop = async (info: any) => {
 
       <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <h2 className="text-lg font-semibold mb-2">🟢 Aktive Bestellungen</h2>
+          <h2 className="text-lg font-semibold mb-2">🟢 Aktive Termine</h2>
           <ul className="space-y-2">
             {activeOrders.map((o) => (
               <li
@@ -227,7 +227,7 @@ const handleDrop = async (info: any) => {
         </div>
 
         <div>
-          <h2 className="text-lg font-semibold mb-2">🟡 Offene Bestellungen</h2>
+          <h2 className="text-lg font-semibold mb-2">🟡 Offene Termine</h2>
           <ul className="space-y-2" id="external-orders">
             {openOrders.map((o) => (
               <li

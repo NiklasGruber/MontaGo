@@ -21,7 +21,7 @@ const OrderList: React.FC = () => {
       setOrders(response.data);
     } catch (err) {
       console.error(err);
-      setError("Fehler beim Laden der Bestellungen");
+      setError("Fehler beim Laden der Termine");
     } finally {
       setLoading(false);
     }
@@ -60,15 +60,15 @@ const OrderList: React.FC = () => {
   };
 
   const deleteOrder = async (orderId: number) => {
-    if (!window.confirm("Bist du sicher, dass du diese Bestellung löschen willst?")) return;
+    if (!window.confirm("Bist du sicher, dass du diese Termine löschen willst?")) return;
     
-    console.log("Lösche Bestellung mit ID:", orderId); // Debug-Ausgabe
+    console.log("Lösche Termine mit ID:", orderId); // Debug-Ausgabe
 
     try {
       await authAxios.delete(`/Orders/${orderId}`);
       fetchOrders();
     } catch (err) {
-      console.error("Fehler beim Löschen der Bestellung", err);
+      console.error("Fehler beim Löschen der Termine", err);
       alert("Löschen fehlgeschlagen.");
     }
   };
@@ -89,7 +89,7 @@ const OrderList: React.FC = () => {
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold text-primary">Bestellungen</h2>
+        <h2 className="text-xl font-bold text-primary">Termine</h2>
         <button
           onClick={() => {
             setShowForm((prev) => !prev);
@@ -97,7 +97,7 @@ const OrderList: React.FC = () => {
           }}
           className="bg-primary text-white px-4 py-2 rounded hover:bg-accent"
         >
-          {showForm ? "Abbrechen" : "+ Neue Bestellung"}
+          {showForm ? "Abbrechen" : "+ Neue Termine"}
         </button>
       </div>
 
@@ -139,11 +139,11 @@ const OrderList: React.FC = () => {
       </div>
 
       {loading ? (
-        <p>Lade Bestellungen…</p>
+        <p>Lade Termine...</p>
       ) : error ? (
         <p className="text-red-500">{error}</p>
       ) : displayedOrders.length === 0 ? (
-        <p className="text-gray-500">Keine Bestellungen gefunden.</p>
+        <p className="text-gray-500">Keine Termine gefunden.</p>
       ) : (
         <ul className="space-y-2">
           {displayedOrders.map((order) => (
@@ -151,7 +151,7 @@ const OrderList: React.FC = () => {
               key={order.id}
               className="p-4 bg-white shadow rounded border border-neutral"
             >
-              <p className="text-sm text-gray-700">📄 Bestellung #{order.name}</p>
+              <p className="text-sm text-gray-700">📄 Termine #{order.name}</p>
               <p className="text-xs text-gray-500">
                 Kunde: {getCustomerName(order.customerId)}, Typ: {getOrderTypeName(order.orderTypeId)}
               </p>
