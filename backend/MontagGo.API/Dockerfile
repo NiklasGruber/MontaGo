@@ -1,4 +1,4 @@
-# Base Image mit SDK (für EF Core Tools im Container)
+# Base Image mit SDK (fÃ¼r EF Core Tools im Container)
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /app
 
@@ -6,21 +6,21 @@ WORKDIR /app
 COPY . .
 RUN dotnet restore MontagGo.API.csproj
 
-# Optional: EF CLI installieren (für direkten Zugriff im Container)
+# Optional: EF CLI installieren (fÃ¼r direkten Zugriff im Container)
 RUN dotnet tool install --global dotnet-ef
 ENV PATH="$PATH:/root/.dotnet/tools"
 
 # Publish in /out
 RUN dotnet publish MontagGo.API.csproj -c Release -o /out
 
-# Runtime-Container (bleibt SDK für dotnet ef!)
+# Runtime-Container (bleibt SDK fÃ¼r dotnet ef!)
 FROM mcr.microsoft.com/dotnet/sdk:8.0
 WORKDIR /app
 
-# Tools erneut aktivieren (für Sicherheit)
+# Tools erneut aktivieren (fÃ¼r Sicherheit)
 ENV PATH="$PATH:/root/.dotnet/tools"
 
-# Veröffentlichten Code kopieren
+# VerÃ¶ffentlichten Code kopieren
 COPY --from=build /out .
 
 # Startpunkt

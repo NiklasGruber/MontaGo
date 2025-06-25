@@ -1,7 +1,10 @@
 import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import react from '@vitejs/plugin-react' // falls du React verwendest
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  base: '/', // wichtig, damit es im Root deployed wird
+  build: {
+    outDir: 'dist'
+  }
 })

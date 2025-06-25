@@ -7,8 +7,12 @@ using Microsoft.OpenApi.Models;
 using System.Text;
 using MontagGo.API.Mapper;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.FileProviders;
+
 
 var builder = WebApplication.CreateBuilder(args);
+Console.WriteLine(">>> ENVIRONMENT: " + builder.Environment.EnvironmentName);
+
 var MyAllowSpecificOrigins = "_MontagoSpecificCORS";
 
 builder.Services.AddControllers();
@@ -52,17 +56,22 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 //CORS
+MyAllowSpecificOrigins = "_MontagoCorsPolicy";
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(name: MyAllowSpecificOrigins,
         policy =>
         {
             policy
-                .WithOrigins("http://localhost:5173", "http://[::1]:5173")
+                .WithOrigins("https://montago.onrender.com")
+                                .WithOrigins("http://localhost:5173", "http://[::1]:5173")
                 .AllowAnyHeader()
+                .AllowCredentials()
                 .AllowAnyMethod();
         });
 });
+
 
 // ?? JWT Auth
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
@@ -118,10 +127,19 @@ if (app.Environment.IsDevelopment())
 }
 
 // ?? Middleware
+app.UseDefaultFiles();
+
+var loggerFactory = app.Services.GetRequiredService<ILoggerFactory>();
+var logger = loggerFactory.CreateLogger("Montago");
+
+app.UseCors(MyAllowSpecificOrigins);
+
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseCors(MyAllowSpecificOrigins);
 
 app.MapControllers();
+
+// SPA-Fallback nach Routing
+app.MapFallbackToFile("/index.html");
 app.Run();
