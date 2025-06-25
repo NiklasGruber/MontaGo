@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useState } from "react";
-import axios from "axios";
+import authAxios from "../api/axios";
 import { useNavigate } from "react-router-dom";
 
 const LoginPage: React.FC = () => {
@@ -11,7 +11,8 @@ const LoginPage: React.FC = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await axios.post("/api/Auth/login", {
+console.log("Axios baseURL:", authAxios.defaults.baseURL);
+      const response = await authAxios.post("/Auth/login", {
         username,
         password,
       });

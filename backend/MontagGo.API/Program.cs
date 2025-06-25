@@ -9,7 +9,10 @@ using MontagGo.API.Mapper;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.FileProviders;
 
+
 var builder = WebApplication.CreateBuilder(args);
+Console.WriteLine(">>> ENVIRONMENT: " + builder.Environment.EnvironmentName);
+
 var MyAllowSpecificOrigins = "_MontagoSpecificCORS";
 
 builder.Services.AddControllers();
@@ -62,7 +65,9 @@ builder.Services.AddCors(options =>
         {
             policy
                 .WithOrigins("https://montago.onrender.com")
+                                .WithOrigins("http://localhost:5173", "http://[::1]:5173")
                 .AllowAnyHeader()
+                .AllowCredentials()
                 .AllowAnyMethod();
         });
 });
@@ -123,11 +128,21 @@ if (app.Environment.IsDevelopment())
 
 // ?? Middleware
 app.UseDefaultFiles();
-app.UseStaticFiles(new StaticFileOptions
+
+var loggerFactory = app.Services.GetRequiredService<ILoggerFactory>();
+var logger = loggerFactory.CreateLogger("Montago");
+
+if (!app.Environment.IsDevelopment())
 {
-    FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "frontend")),
-    RequestPath = ""
-});
+
+    logger.LogInformation($"{new PhysicalFileProvider(Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory())!.Parent.FullName, "frontend", "MontagoFrontend"))}");
+    app.UseStaticFiles(new StaticFileOptions
+    {
+        FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory())!.Parent.FullName, "frontend", "MontagoFrontend")),
+        RequestPath = ""
+    });
+
+}
 app.UseCors(MyAllowSpecificOrigins);
 
 app.UseRouting();
