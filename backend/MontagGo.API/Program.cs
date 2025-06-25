@@ -131,7 +131,31 @@ app.UseDefaultFiles();
 
 var loggerFactory = app.Services.GetRequiredService<ILoggerFactory>();
 var logger = loggerFactory.CreateLogger("Montago");
+if (app.Environment.IsDevelopment())
+{
+    var path = Path.Combine(
+        Directory.GetParent(Directory.GetCurrentDirectory())!.Parent!.FullName,
+        "frontend", "MontagoFrontend");
 
+    var fileProvider = new PhysicalFileProvider(path);
+
+    logger.LogInformation($"[DEV] Serving frontend from: {fileProvider.Root}");
+
+    app.UseStaticFiles(new StaticFileOptions
+    {
+        FileProvider = fileProvider,
+        RequestPath = ""
+    });
+}
+else
+{
+    // Render / Docker build: Frontend liegt direkt in /app/frontend
+    app.UseStaticFiles(new StaticFileOptions
+    {
+        FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "frontend")),
+        RequestPath = ""
+    });
+}
 app.UseCors(MyAllowSpecificOrigins);
 
 app.UseRouting();
