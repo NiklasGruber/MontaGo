@@ -132,17 +132,6 @@ app.UseDefaultFiles();
 var loggerFactory = app.Services.GetRequiredService<ILoggerFactory>();
 var logger = loggerFactory.CreateLogger("Montago");
 
-if (!app.Environment.IsDevelopment())
-{
-
-    logger.LogInformation($"{new PhysicalFileProvider(Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory())!.Parent.FullName, "frontend", "MontagoFrontend"))}");
-    app.UseStaticFiles(new StaticFileOptions
-    {
-        FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory())!.Parent.FullName, "frontend", "MontagoFrontend")),
-        RequestPath = ""
-    });
-
-}
 app.UseCors(MyAllowSpecificOrigins);
 
 app.UseRouting();
