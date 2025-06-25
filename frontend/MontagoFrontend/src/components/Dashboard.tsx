@@ -114,7 +114,7 @@ const handleReceive = async (info: EventReceiveArg) => {
   };
 
   try {
-    await authAxios.put(`/Orders/${id}`, updated);
+    await authAxios.put(`/api/Orders/${id}`, updated);
     await fetchOrders();
     setCalendarKey((prev) => prev + 1);
   } catch (err) {
@@ -138,7 +138,7 @@ const handleDrop = async (info: any) => {
   };
 
   try {
-    await authAxios.put(`/Orders/${id}`, updated);
+    await authAxios.put(`/api/Orders/${id}`, updated);
     await fetchOrders();
     setCalendarKey((prev) => prev + 1);
   } catch (err) {

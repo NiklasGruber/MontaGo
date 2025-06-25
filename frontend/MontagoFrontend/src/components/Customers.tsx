@@ -91,9 +91,9 @@ const CustomerPage: React.FC = () => {
   const handleSubmit = async () => {
     try {
       if (isEditing) {
-        await authAxios.put(`/Customer/${selectedCustomer.id}`, selectedCustomer);
+        await authAxios.put(`/api/Customer/${selectedCustomer.id}`, selectedCustomer);
       } else {
-        await authAxios.post("/Customer", selectedCustomer);
+        await authAxios.post("/api/Customer", selectedCustomer);
       }
       setShowModal(false);
       resetForm();
@@ -112,7 +112,7 @@ const CustomerPage: React.FC = () => {
   const handleDelete = async (id: number) => {
     if (!window.confirm("Kunden wirklich löschen?")) return;
     try {
-      await authAxios.delete(`/Customer/${id}`);
+      await authAxios.delete(`/api/Customer/${id}`);
       fetchCustomers();
     } catch (error) {
       console.error("Fehler beim Löschen", error);
@@ -121,7 +121,7 @@ const CustomerPage: React.FC = () => {
 
   const handleAddAddress = async () => {
     try {
-      const response = await authAxios.post<AddressDto>("/Address", newAddress);
+      const response = await authAxios.post<AddressDto>("/api/Address", newAddress);
       const added = response.data;
       setAddresses((prev) => [...prev, added]);
       setSelectedCustomer((prev) => ({ ...prev, addressId: added.id  }));

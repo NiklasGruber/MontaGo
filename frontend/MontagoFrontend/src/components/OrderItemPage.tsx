@@ -15,7 +15,7 @@ const ProductPage: React.FC = () => {
 
   const fetchProducts = async () => {
     try {
-      const response = await authAxios.get<ProductDto[]>("/Product");
+      const response = await authAxios.get<ProductDto[]>("/api/Product");
       setProducts(response.data);
     } catch (err) {
       console.error("Fehler beim Laden der Produkte", err);
@@ -29,9 +29,9 @@ const ProductPage: React.FC = () => {
   const handleSubmit = async () => {
     try {
       if (isEditing && selectedProduct.id !== undefined) {
-        await authAxios.put(`/Product/${selectedProduct.id}`, selectedProduct);
+        await authAxios.put(`/api/Product/${selectedProduct.id}`, selectedProduct);
       } else {
-        await authAxios.post("/Product", selectedProduct);
+        await authAxios.post("/api/Product", selectedProduct);
       }
       setShowModal(false);
       setSelectedProduct({id: 0, name: "", description: "" });
@@ -51,7 +51,7 @@ const ProductPage: React.FC = () => {
   const handleDelete = async (id?: number) => {
     if (!id || !window.confirm("Wirklich löschen?")) return;
     try {
-      await authAxios.delete(`/Product/${id}`);
+      await authAxios.delete(`/api/Product/${id}`);
       fetchProducts();
     } catch (err) {
       console.error("Fehler beim Löschen", err);

@@ -19,7 +19,7 @@ const AddressPage: React.FC = () => {
 
   const fetchAddresses = async () => {
     try {
-      const response = await authAxios.get<AddressDto[]>("/Address");
+      const response = await authAxios.get<AddressDto[]>("/api/Address");
       setAddresses(response.data);
     } catch (error) {
       console.error("Error loading addresses", error);

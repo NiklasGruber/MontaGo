@@ -12,7 +12,7 @@ const LoginPage: React.FC = () => {
     e.preventDefault();
     try {
 console.log("Axios baseURL:", authAxios.defaults.baseURL);
-      const response = await authAxios.post("/Auth/login", {
+      const response = await authAxios.post("/api/Auth/login", {
         username,
         password,
       });

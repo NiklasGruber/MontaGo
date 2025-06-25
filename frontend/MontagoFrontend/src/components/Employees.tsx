@@ -20,7 +20,7 @@ const EmployeesPage: React.FC = () => {
 
   const fetchEmployees = async () => {
     try {
-      const response = await authAxios.get<EmployeeDto[]>("/Worker");
+      const response = await authAxios.get<EmployeeDto[]>("/api/Worker");
       setEmployees(response.data);
     } catch (error) {
       console.error("Error loading employees:", error);
@@ -29,7 +29,7 @@ const EmployeesPage: React.FC = () => {
 
   const fetchRoles = async () => {
     try {
-      const response = await authAxios.get<RoleDto[]>("/Role");
+      const response = await authAxios.get<RoleDto[]>("/api/Role");
       setRoles(response.data);
     } catch (error) {
       console.error("Error fetching roles:", error);
@@ -52,9 +52,9 @@ const EmployeesPage: React.FC = () => {
   const handleSubmit = async () => {
     try {
       if (isEditing) {
-        await authAxios.put(`/Worker/${newEmployee.id}`, newEmployee);
+        await authAxios.put(`/api/Worker/${newEmployee.id}`, newEmployee);
       } else {
-        await authAxios.post("/Worker", newEmployee);
+        await authAxios.post("/api/Worker", newEmployee);
       }
       setShowModal(false);
       resetForm();
@@ -73,7 +73,7 @@ const EmployeesPage: React.FC = () => {
   const handleDelete = async (id: number) => {
     if (!window.confirm("Mitarbeiter wirklich löschen?")) return;
     try {
-      await authAxios.delete(`/Worker/${id}`);
+      await authAxios.delete(`/api/Worker/${id}`);
       console.log(id, "deleted");
       fetchEmployees();
     } catch (error) {

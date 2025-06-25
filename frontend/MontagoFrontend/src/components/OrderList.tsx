@@ -17,7 +17,7 @@ const OrderList: React.FC = () => {
 
   const fetchOrders = async () => {
     try {
-      const response = await authAxios.get<OrderDto[]>("/Orders");
+      const response = await authAxios.get<OrderDto[]>("/api/Orders");
       setOrders(response.data);
     } catch (err) {
       console.error(err);
@@ -29,7 +29,7 @@ const OrderList: React.FC = () => {
 
   const fetchOrderTypes = async () => {
     try {
-      const response = await authAxios.get("/OrderType");
+      const response = await authAxios.get("/api/OrderType");
       setOrderTypes(response.data);
     } catch (err) {
       console.error("Fehler beim Laden der Auftragstypen", err);
@@ -38,7 +38,7 @@ const OrderList: React.FC = () => {
 
   const fetchCustomers = async () => {
     try {
-      const response = await authAxios.get<CustomerDto[]>("/Customer");
+      const response = await authAxios.get<CustomerDto[]>("/api/Customer");
       setCustomers(response.data);
     } catch (err) {
       console.error("Fehler beim Laden der Kunden", err);
@@ -65,7 +65,7 @@ const OrderList: React.FC = () => {
     console.log("Lösche Termine mit ID:", orderId); // Debug-Ausgabe
 
     try {
-      await authAxios.delete(`/Orders/${orderId}`);
+      await authAxios.delete(`/api/Orders/${orderId}`);
       fetchOrders();
     } catch (err) {
       console.error("Fehler beim Löschen der Termine", err);

@@ -34,11 +34,11 @@ const [orderState, setOrder] = useState({
   useEffect(() => {
     const loadData = async () => {
       const [c, a, o, w, p] = await Promise.all([
-        authAxios.get("/Customer"),
-        authAxios.get("/Address"),
-        authAxios.get("/OrderType"),
-        authAxios.get("/Worker"),
-        authAxios.get("/Product"),
+        authAxios.get("/api/Customer"),
+        authAxios.get("/api/Address"),
+        authAxios.get("/api/OrderType"),
+        authAxios.get("/api/Worker"),
+        authAxios.get("/api/Product"),
       ]);
       setCustomers(c.data);
       setAddresses(a.data);
@@ -86,7 +86,7 @@ const [orderState, setOrder] = useState({
     console.log("Sende Termine:", payload); // 🔍 Debug-Ausgabe
 
     try {
-      await authAxios.post("/Orders", payload);
+      await authAxios.post("/api/Orders", payload);
       onCreated?.();
       alert("Termine erfolgreich erstellt.");
     } catch (err) {

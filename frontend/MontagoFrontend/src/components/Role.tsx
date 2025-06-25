@@ -11,7 +11,7 @@ const RolePage: React.FC = () => {
 
   const fetchRoles = async () => {
     try {
-      const response = await authAxios.get<RoleDto[]>("/Role");
+      const response = await authAxios.get<RoleDto[]>("/api/Role");
       setRoles(response.data);
     } catch (error) {
       console.error("Error fetching roles", error);
@@ -34,9 +34,9 @@ const RolePage: React.FC = () => {
   const handleSubmit = async () => {
     try {
       if (isEditing) {
-        await authAxios.put(`/Role/${selectedRole.id}`, selectedRole);
+        await authAxios.put(`/api/Role/${selectedRole.id}`, selectedRole);
       } else {
-        await authAxios.post("/Role", selectedRole);
+        await authAxios.post("/api/Role", selectedRole);
       }
       setShowModal(false);
       resetForm();

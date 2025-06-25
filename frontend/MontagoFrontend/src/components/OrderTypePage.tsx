@@ -11,7 +11,7 @@ const OrderTypePage: React.FC = () => {
 
   const fetchTypes = async () => {
     try {
-      const res = await authAxios.get<OrderTypeDto[]>("/OrderType");
+      const res = await authAxios.get<OrderTypeDto[]>("/api/OrderType");
       setTypes(res.data);
     } catch (err) {
       console.error("Fehler beim Laden der Auftragstypen", err);
@@ -25,9 +25,9 @@ const OrderTypePage: React.FC = () => {
   const handleSubmit = async () => {
     try {
       if (isEditing && selected.id !== undefined) {
-        await authAxios.put(`/OrderType/${selected.id}`, selected);
+        await authAxios.put(`/api/OrderType/${selected.id}`, selected);
       } else {
-        await authAxios.post("/OrderType", selected);
+        await authAxios.post("/api/OrderType", selected);
       }
       setShowModal(false);
       setSelected({ name: "", description: "" });
@@ -47,7 +47,7 @@ const OrderTypePage: React.FC = () => {
   const handleDelete = async (id?: number) => {
     if (!id || !window.confirm("Wirklich löschen?")) return;
     try {
-      await authAxios.delete(`/OrderType/${id}`);
+      await authAxios.delete(`/api/OrderType/${id}`);
       fetchTypes();
     } catch (err) {
       console.error("Fehler beim Löschen", err);
