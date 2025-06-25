@@ -227,7 +227,7 @@ const handleDrop = async (info: any) => {
         </div>
 
         <div>
-          <h2 className="text-lg font-semibold mb-2">🟡 Offene Termine</h2>
+          <h2 className="text-lg font-semibold mb-2">🟡 Offene Termine </h2>
           <ul className="space-y-2" id="external-orders">
             {openOrders.map((o) => (
               <li
