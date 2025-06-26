@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useEffect, useState } from "react";
-import authAxios from "../api/axios";
 import { AddressDto } from "../api/types";
+import api from "../api/Addressapi";
 
 const AddressPage: React.FC = () => {
   const [addresses, setAddresses] = useState<AddressDto[]>([]);
@@ -17,17 +17,8 @@ const AddressPage: React.FC = () => {
     additionalInfo: "",
   });
 
-  const fetchAddresses = async () => {
-    try {
-      const response = await authAxios.get<AddressDto[]>("/api/Address");
-      setAddresses(response.data);
-    } catch (error) {
-      console.error("Error loading addresses", error);
-    }
-  };
-
   useEffect(() => {
-    fetchAddresses();
+    api.fetchAddresses().then(setAddresses);
   }, []);
 
   const resetForm = () => {
@@ -51,13 +42,14 @@ const AddressPage: React.FC = () => {
   const handleSubmit = async () => {
     try {
       if (isEditing) {
-        await authAxios.put(`/api/Address/${selectedAddress.id}`, selectedAddress);
+        await api.putAddress(selectedAddress);
       } else {
-        await authAxios.post("/api/Address", selectedAddress);
+        await api.postAddress(selectedAddress);
       }
       setShowModal(false);
       resetForm();
-      fetchAddresses();
+      const updated = await api.fetchAddresses();
+      if (updated) setAddresses(updated);
     } catch (error) {
       console.error("Fehler beim Speichern der Adresse", error);
     }
@@ -72,8 +64,8 @@ const AddressPage: React.FC = () => {
   const handleDelete = async (id: number) => {
     if (!window.confirm("Adresse wirklich löschen?")) return;
     try {
-      await authAxios.delete(`/api/Address/${id}`);
-      fetchAddresses();
+      await api.deleteAddress(id);
+      api.fetchAddresses();
     } catch (error) {
       console.error("Fehler beim Löschen", error);
     }

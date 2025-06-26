@@ -34,8 +34,8 @@ export interface OrderDto {
   name: string;
   customerId: number;
   orderTypeId: number;
-  billingAddressId: number;
-  deliveryAddressId: number;
+  billingAddress: AddressDto;
+  deliveryAddress: AddressDto;
   itemsId: number[];
   assignedWorkerIds: number[];
   createdAt: string;

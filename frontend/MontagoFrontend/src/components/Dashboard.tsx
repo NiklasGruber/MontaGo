@@ -5,9 +5,9 @@ import { EventClickArg } from "@fullcalendar/core";
 import { EventReceiveArg } from "@fullcalendar/interaction";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin, { Draggable } from "@fullcalendar/interaction";
-import authAxios from "../api/axios";
 import "../styles/calendar.css";
 import { OrderDto } from "../api/types";
+import orderapi from "../api/orderApi";
 
 const Dashboard: React.FC = () => {
   const [orders, setOrders] = useState<OrderDto[]>([]);
@@ -15,17 +15,8 @@ const Dashboard: React.FC = () => {
   const [calendarKey, setCalendarKey] = useState(0);
 
   useEffect(() => {
-    fetchOrders();
+    orderapi.fetchOrders().then(setOrders);
   }, []);
-
-  const fetchOrders = async () => {
-    try {
-      const response = await authAxios.get("/api/Orders");
-      setOrders(response.data);
-    } catch (err) {
-      console.error("Fehler beim Laden der Termine", err);
-    }
-  };
 
   useEffect(() => {
     const externalContainer = document.getElementById("external-orders");
@@ -53,37 +44,39 @@ const Dashboard: React.FC = () => {
     if (order) setSelectedOrder(order);
   };
 
-const isProcessing = useRef<boolean>(false);
+  const isProcessing = useRef<boolean>(false);
 
-const handleReceive = async (info: EventReceiveArg) => {
-  if (isProcessing.current) return;
-  isProcessing.current = true;
+  const handleReceive = async (info: EventReceiveArg) => {
+    if (isProcessing.current) return;
+    isProcessing.current = true;
 
-  try {
-    const id = parseInt(info.event.id);
-    const dropDate = info.event.start!;
-    const order = orders.find((o) => o.id === id);
-    if (!order) return;
+    try {
+      const id = parseInt(info.event.id);
+      const dropDate = info.event.start!;
+      const order = orders.find((o) => o.id === id);
+      if (!order) return;
 
-    const startDate = dropDate.toISOString();
-    const dueDate = new Date(dropDate.getTime() + 24 * 60 * 60 * 1000).toISOString();
+      const startDate = dropDate.toISOString();
+      const dueDate = new Date(dropDate.getTime() + 24 * 60 * 60 * 1000).toISOString();
 
-    const updated: OrderDto = {
-      ...order,
-      startDate,
-      dueDate,
-      endDate: dueDate,
-    };
+      const updated: OrderDto = {
+        ...order,
+        startDate,
+        dueDate,
+        endDate: dueDate,
+      };
 
-    await authAxios.put(`/api/Orders/${id}`, updated);
-    await fetchOrders();
-    setCalendarKey((prev) => prev + 1);
-  } catch (err) {
-    console.error("Fehler beim Aktualisieren der Termine", err);
-  } finally {
-    isProcessing.current = false;
-  }
-};
+      console.log("Aktualisiere Bestellung:", updated);
+      await orderapi.putOrder(updated);
+      const update = await orderapi.fetchOrders();
+      if (update) setOrders(update);
+      setCalendarKey((prev) => prev + 1);
+    } catch (err) {
+      console.error("Fehler beim Aktualisieren der Termine", err);
+    } finally {
+      isProcessing.current = false;
+    }
+  };
 
 
 
@@ -91,62 +84,61 @@ const handleReceive = async (info: EventReceiveArg) => {
     .filter((o) => o.startDate && o.dueDate)
     .map((o) => ({
       id: String(o.id),
-      title: o.name,
+      title: `${o.name} - ${o.deliveryAddress.postalCode} ${o.deliveryAddress.city}`,
       start: o.startDate!,
       end: o.dueDate!,
       color: o.active ? "#34d399" : "#facc15",
       allDay: true,
     }));
 
-    const handleResize = async (info: any) => {
-  const id = parseInt(info.event.id);
-  const order = orders.find((o) => o.id === id);
-  if (!order) return;
+  const handleResize = async (info: any) => {
+    const id = parseInt(info.event.id);
+    const order = orders.find((o) => o.id === id);
+    if (!order) return;
 
-  const newStartDate = info.event.start?.toISOString();
-  const newDueDate = info.event.end?.toISOString();
+    const newStartDate = info.event.start?.toISOString();
+    const newDueDate = info.event.end?.toISOString();
 
-  const updated: OrderDto = {
-    ...order,
-    startDate: newStartDate,
-    dueDate: newDueDate,
-    endDate: newDueDate,
+    const updated: OrderDto = {
+      ...order,
+      startDate: newStartDate,
+      dueDate: newDueDate,
+      endDate: newDueDate,
+    };
+
+    try {
+      await orderapi.putOrder(updated);
+      const update = await orderapi.fetchOrders();
+      if (update) setOrders(update); setCalendarKey((prev) => prev + 1);
+    } catch (err) {
+      console.error("Fehler beim Anpassen der Termine per Resize", err);
+    }
   };
 
-  try {
-    await authAxios.put(`/api/Orders/${id}`, updated);
-    await fetchOrders();
-    setCalendarKey((prev) => prev + 1);
-  } catch (err) {
-    console.error("Fehler beim Anpassen der Termine per Resize", err);
-  }
-};
+  const handleDrop = async (info: any) => {
+    const id = parseInt(info.event.id);
+    const order = orders.find((o) => o.id === id);
+    if (!order) return;
 
-const handleDrop = async (info: any) => {
-  const id = parseInt(info.event.id);
-  const order = orders.find((o) => o.id === id);
-  if (!order) return;
+    const newStartDate = info.event.start?.toISOString();
+    const newDueDate = info.event.end?.toISOString();
 
-  const newStartDate = info.event.start?.toISOString();
-  const newDueDate = info.event.end?.toISOString();
+    const updated: OrderDto = {
+      ...order,
+      startDate: newStartDate,
+      dueDate: newDueDate,
+      endDate: newDueDate,
+    };
 
-  const updated: OrderDto = {
-    ...order,
-    startDate: newStartDate,
-    dueDate: newDueDate,
-    endDate: newDueDate,
+    try {
+      await orderapi.putOrder(updated);
+      const update = await orderapi.fetchOrders();
+      if (update) setOrders(update);
+      setCalendarKey((prev) => prev + 1);
+    } catch (err) {
+      console.error("Fehler beim Verschieben der Termine", err);
+    }
   };
-
-  try {
-    await authAxios.put(`/api/Orders/${id}`, updated);
-    await fetchOrders();
-    setCalendarKey((prev) => prev + 1);
-  } catch (err) {
-    console.error("Fehler beim Verschieben der Termine", err);
-  }
-};
-
-
 
   return (
     <div className="p-6">
@@ -160,7 +152,7 @@ const handleDrop = async (info: any) => {
         editable={true}
         droppable={true}
         eventReceive={handleReceive}
-        eventResize={handleResize}  
+        eventResize={handleResize}
         eventDrop={handleDrop}
         eventClick={handleEventClick}
         height="auto"
@@ -214,11 +206,16 @@ const handleDrop = async (info: any) => {
                 <p className="font-medium text-sm text-neutral">
                   #{o.id} – {o.name}
                 </p>
+                <p className="font-xs text-sm text-neutral" style={{ whiteSpace: "pre-line" }}>
+                  Straße: {o.deliveryAddress.street} {o.deliveryAddress.houseNumber} {`\n`}
+                  Ort: {o.deliveryAddress.postalCode} {o.deliveryAddress.city}, {o.deliveryAddress.country} {`\n`}
+                  {o.deliveryAddress.additionalInfo ? `Zusatzinformationen: ${o.deliveryAddress.additionalInfo}` : ""}
+                </p>
                 <p className="text-xs text-gray-500">
                   {o.startDate
                     ? `${new Date(o.startDate).toLocaleDateString()} → ${new Date(
-                        o.dueDate!
-                      ).toLocaleDateString()}`
+                      o.dueDate!
+                    ).toLocaleDateString()}`
                     : "Noch nicht geplant"}
                 </p>
               </li>
@@ -239,6 +236,13 @@ const handleDrop = async (info: any) => {
                 <p className="font-medium text-sm text-neutral">
                   #{o.id} – {o.name}
                 </p>
+                {o.deliveryAddress && (
+                  <p className="font-xs text-sm text-neutral" style={{ whiteSpace: "pre-line" }}>
+                    Straße: {o.deliveryAddress.street} {o.deliveryAddress.houseNumber} {`\n`}
+                    Ort: {o.deliveryAddress.postalCode} {o.deliveryAddress.city}, {o.deliveryAddress.country} {`\n`}
+                    {o.deliveryAddress.additionalInfo ? `Zusatzinformationen: ${o.deliveryAddress.additionalInfo}` : ""}
+                  </p>
+                )}
               </li>
             ))}
           </ul>
