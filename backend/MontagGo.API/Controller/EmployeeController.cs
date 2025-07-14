@@ -10,12 +10,12 @@ namespace MontagGo.API.Controller
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
-    public class WorkerController : ControllerBase
+    public class EmployeeController : ControllerBase
     {
         private readonly AppDbContext _context;
         private readonly IMapper _mapper;
 
-        public WorkerController(AppDbContext context, IMapper mapper)
+        public EmployeeController(AppDbContext context, IMapper mapper)
         {
             _context = context;
             _mapper = mapper;

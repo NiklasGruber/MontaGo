@@ -1,7 +1,8 @@
 import * as React from "react";
 import { useEffect, useState } from "react";
-import authAxios from "../api/axios";
 import { CustomerDto, AddressDto } from "../api/types";
+import apiCustomers from "../api/customerApi";
+import apiAddresses from "../api/addressApi";
 
 const CustomerPage: React.FC = () => {
   const [customers, setCustomers] = useState<CustomerDto[]>([]);
@@ -30,8 +31,8 @@ const CustomerPage: React.FC = () => {
 
   const fetchCustomers = async () => {
     try {
-      const response = await authAxios.get<CustomerDto[]>("/api/Customer");
-      setCustomers(response.data);
+      const response = await apiCustomers.fetchCustomers();
+      setCustomers(response);
     } catch (error) {
       console.error("Error loading customers", error);
     }
@@ -39,8 +40,8 @@ const CustomerPage: React.FC = () => {
 
   const fetchAddresses = async () => {
     try {
-      const response = await authAxios.get<AddressDto[]>("/api/Address");
-      setAddresses(response.data);
+      const response = await apiAddresses.fetchAddresses();
+      setAddresses(response);
     } catch (error) {
       console.error("Error loading addresses", error);
     }
@@ -91,9 +92,9 @@ const CustomerPage: React.FC = () => {
   const handleSubmit = async () => {
     try {
       if (isEditing) {
-        await authAxios.put(`/api/Customer/${selectedCustomer.id}`, selectedCustomer);
+        await apiCustomers.putCustomer(selectedCustomer);
       } else {
-        await authAxios.post("/api/Customer", selectedCustomer);
+        await apiCustomers.postCustomer(selectedCustomer);
       }
       setShowModal(false);
       resetForm();
@@ -112,7 +113,7 @@ const CustomerPage: React.FC = () => {
   const handleDelete = async (id: number) => {
     if (!window.confirm("Kunden wirklich löschen?")) return;
     try {
-      await authAxios.delete(`/api/Customer/${id}`);
+      await apiCustomers.deleteCustomer(id);
       fetchCustomers();
     } catch (error) {
       console.error("Fehler beim Löschen", error);
@@ -121,10 +122,9 @@ const CustomerPage: React.FC = () => {
 
   const handleAddAddress = async () => {
     try {
-      const response = await authAxios.post<AddressDto>("/api/Address", newAddress);
-      const added = response.data;
-      setAddresses((prev) => [...prev, added]);
-      setSelectedCustomer((prev) => ({ ...prev, addressId: added.id  }));
+      const response = await apiAddresses.postAddress(newAddress);
+      setAddresses((prev) => [...prev, response]);
+      setSelectedCustomer((prev) => ({ ...prev, addressId: response.id  }));
       setNewAddress({
         id: 0,
         street: "",

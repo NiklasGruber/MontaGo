@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useEffect, useState } from "react";
 import { AddressDto } from "../api/types";
-import api from "../api/Addressapi";
+import api from "../api/addressApi";
 
 const AddressPage: React.FC = () => {
   const [addresses, setAddresses] = useState<AddressDto[]>([]);
@@ -65,7 +65,7 @@ const AddressPage: React.FC = () => {
     if (!window.confirm("Adresse wirklich löschen?")) return;
     try {
       await api.deleteAddress(id);
-      api.fetchAddresses();
+      window.location.reload(); // Refresh the page after deletion
     } catch (error) {
       console.error("Fehler beim Löschen", error);
     }

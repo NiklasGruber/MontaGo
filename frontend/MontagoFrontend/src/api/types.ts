@@ -14,12 +14,6 @@ export interface OrderTypeDto {
   description?: string;
 }
 
-export interface OrderItemDto {
-  id?: number;
-  productName: string;
-  quantity: number;
-}
-
 export interface WorkerDto {
   id: number;
   firstName?: string;
@@ -34,8 +28,8 @@ export interface OrderDto {
   name: string;
   customerId: number;
   orderTypeId: number;
-  billingAddress: AddressDto;
-  deliveryAddress: AddressDto;
+  billingAddressId: number;
+  deliveryAddressId: number;
   itemsId: number[];
   assignedWorkerIds: number[];
   createdAt: string;
@@ -43,6 +37,13 @@ export interface OrderDto {
   dueDate: string;
   endDate?: string;
     active: boolean;
+}
+
+export interface OrderDateUpdateDto{
+  id: number;
+  startDate?: string;
+  dueDate?: string;
+  endDate?: string;
 }
 
 

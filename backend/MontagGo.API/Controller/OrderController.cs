@@ -145,6 +145,21 @@ namespace MontagGo.API.Controller
             return CreatedAtAction(nameof(GetOrder), new { id = order.Id }, createdDto);
         }
 
+        [HttpPut("{id}/dates")]
+        public async Task<IActionResult> UpdateDate(int id, OrderUpdateDateDto updateDateDto)
+        {
+            if (id != updateDateDto.Id) return BadRequest("Order ID mismatch.");
+            var order = await _context.Orders.FindAsync(id);
+            if (order == null) return NotFound("Order not found.");
+            // Update the dates
+            order.StartDate = updateDateDto.StartDate ?? order.StartDate;
+            order.DueDate = updateDateDto.DueDate ?? order.DueDate;
+            order.EndDate = updateDateDto.EndDate ?? order.EndDate;
+            _context.Orders.Update(order);
+            await _context.SaveChangesAsync();
+            return NoContent();
+        }
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteOrder(int id)
         {

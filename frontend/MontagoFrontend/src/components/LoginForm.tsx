@@ -2,6 +2,7 @@ import * as React from "react";
 import { useState } from "react";
 import authAxios from "../api/axios";
 import { useNavigate } from "react-router-dom";
+import loginApi from "../api/loginApi";
 
 const LoginPage: React.FC = () => {
   const [username, setUsername] = useState("");
@@ -11,14 +12,13 @@ const LoginPage: React.FC = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-console.log("Axios baseURL:", authAxios.defaults.baseURL);
-      const response = await authAxios.post("/api/Auth/login", {
-        username,
-        password,
-      });
-      const token = response.data.token;
-      localStorage.setItem("token", token);
-      navigate("/dashboard");
+      const token = await loginApi.login(username, password); // response.data.token;
+      if (token) {
+        localStorage.setItem("token", token);
+        navigate("/dashboard");
+      } else {
+        alert("Login failed!");
+      }
     } catch (error) {
       alert("Login failed!");
       console.error("Login error", error);

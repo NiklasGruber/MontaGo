@@ -10,7 +10,7 @@ export const fetchAddresses = async () => {
     }
 };
 
-export const fetchAddresse = async (addressId:number) => {
+export const fetchAddresse = async (addressId:number) : Promise<AddressDto> => {
     try {
         const response = await authAxios.get<AddressDto>(`/api/Address/${addressId}`);
         return response.data;
@@ -29,7 +29,8 @@ export const putAddress = async (address: AddressDto) => {
 
 export const postAddress = async (address: AddressDto) => {
     try {
-        await authAxios.post("/api/Address", address);
+       const response = await authAxios.post("/api/Address", address);
+       return response.data; // Return the created address
     } catch (error) {
         console.error("Error creating address", error);
     }
@@ -45,6 +46,7 @@ export const deleteAddress = async (id: number) => {
 
 export default {
     fetchAddresses,
+    fetchAddresse,
     putAddress,
     postAddress,
     deleteAddress

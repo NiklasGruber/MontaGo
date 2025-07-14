@@ -23,8 +23,8 @@ const Sidebar: React.FC = () => {
         <NavLink to="/orders" className={({ isActive }) => isActive ? `${navItemClass} ${activeClass}` : navItemClass}>
           Termine
         </NavLink>
-        <NavLink to="/order-items" className={({ isActive }) => isActive ? `${navItemClass} ${activeClass}` : navItemClass}>
-          OrderItems
+        <NavLink to="/products" className={({ isActive }) => isActive ? `${navItemClass} ${activeClass}` : navItemClass}>
+          Products
         </NavLink>
          <NavLink to="/order-types" className={({ isActive }) => isActive ? `${navItemClass} ${activeClass}` : navItemClass}>
           OrderType

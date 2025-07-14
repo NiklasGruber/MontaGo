@@ -1,7 +1,8 @@
 import * as React from "react";
 import { useEffect, useState } from "react";
-import authAxios from "../api/axios";
 import { EmployeeDto, RoleDto } from "../api/types";
+import employeApi from "../api/employeeApi";
+import roleApi from "../api/roleApi";
 
 const EmployeesPage: React.FC = () => {
   const [employees, setEmployees] = useState<EmployeeDto[]>([]);
@@ -20,8 +21,8 @@ const EmployeesPage: React.FC = () => {
 
   const fetchEmployees = async () => {
     try {
-      const response = await authAxios.get<EmployeeDto[]>("/api/Worker");
-      setEmployees(response.data);
+      const response = await employeApi.fetchEmployees();
+      setEmployees(response);
     } catch (error) {
       console.error("Error loading employees:", error);
     }
@@ -29,8 +30,8 @@ const EmployeesPage: React.FC = () => {
 
   const fetchRoles = async () => {
     try {
-      const response = await authAxios.get<RoleDto[]>("/api/Role");
-      setRoles(response.data);
+      const response = await roleApi.fetchRoles();
+      setRoles(response);
     } catch (error) {
       console.error("Error fetching roles:", error);
     }
@@ -52,9 +53,9 @@ const EmployeesPage: React.FC = () => {
   const handleSubmit = async () => {
     try {
       if (isEditing) {
-        await authAxios.put(`/api/Worker/${newEmployee.id}`, newEmployee);
+        await employeApi.putEmployee(newEmployee);
       } else {
-        await authAxios.post("/api/Worker", newEmployee);
+        await employeApi.postEmployee(newEmployee);
       }
       setShowModal(false);
       resetForm();
@@ -73,7 +74,7 @@ const EmployeesPage: React.FC = () => {
   const handleDelete = async (id: number) => {
     if (!window.confirm("Mitarbeiter wirklich löschen?")) return;
     try {
-      await authAxios.delete(`/api/Worker/${id}`);
+      await employeApi.deleteEmployee(id);
       console.log(id, "deleted");
       fetchEmployees();
     } catch (error) {

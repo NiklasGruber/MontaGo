@@ -8,7 +8,7 @@ import OrderList from "./components/OrderList";
 import RolePage from "./components/Role";
 import CustomerPage from "./components/Customers";
 import AddressPage from "./components/AddressPage";
-import OrderItemPage from "./components/OrderItemPage";
+import OrderItemPage from "./components/ProductsPage";
 import OrderTypePage from "./components/OrderTypePage";
 
 
@@ -35,7 +35,7 @@ function App() {
                     <Route path="/orders" element={<OrderList />} />
                     <Route path="/customers" element={<CustomerPage />} />
                     <Route path="/addresses" element={<AddressPage />} />
-                    <Route path="/order-items" element={<OrderItemPage />} />
+                    <Route path="/products" element={<OrderItemPage />} />
                     <Route path="/order-types" element={<OrderTypePage />} />
 
                     {/* Add more protected pages here */}
