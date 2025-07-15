@@ -25,7 +25,7 @@ namespace MontagGo.API.Controller
         [HttpGet]
         public async Task<IActionResult> GetAllOrders()
         {
-            var orders = await _context.Orders.ToListAsync();
+            var orders = await _context.Orders.Where(x => x.DeletedAt == null).ToListAsync();
 
             // Manuelles Mapping der abhängigen Entitäten für das DTO
             var orderDtos = new List<OrderDto>();
@@ -78,7 +78,7 @@ namespace MontagGo.API.Controller
         [HttpGet("{id}")]
         public async Task<IActionResult> GetOrder(int id)
         {
-            var order = await _context.Orders.FirstOrDefaultAsync(o => o.Id == id);
+            var order = await _context.Orders.FirstOrDefaultAsync(o => o.Id == id && o.DeletedAt != null);
             if (order == null)
                 return NotFound();
 
@@ -143,6 +143,21 @@ namespace MontagGo.API.Controller
 
             var createdDto = _mapper.Map<CreateOrderDto>(order);
             return CreatedAtAction(nameof(GetOrder), new { id = order.Id }, createdDto);
+        }
+
+        [HttpPut("{id}/dates")]
+        public async Task<IActionResult> UpdateDate(int id, OrderUpdateDateDto updateDateDto)
+        {
+            if (id != updateDateDto.Id) return BadRequest("Order ID mismatch.");
+            var order = await _context.Orders.FindAsync(id);
+            if (order == null) return NotFound("Order not found.");
+            // Update the dates
+            order.StartDate = updateDateDto.StartDate ?? order.StartDate;
+            order.DueDate = updateDateDto.DueDate ?? order.DueDate;
+            order.EndDate = updateDateDto.EndDate ?? order.EndDate;
+            _context.Orders.Update(order);
+            await _context.SaveChangesAsync();
+            return NoContent();
         }
 
         [HttpDelete("{id}")]

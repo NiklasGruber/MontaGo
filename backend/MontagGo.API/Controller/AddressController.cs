@@ -24,7 +24,7 @@ namespace MontagGo.API.Controller
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var addresses = await _context.Addresses.ToListAsync();
+            var addresses = await _context.Addresses.Where(x => x.DeletedAt == null).ToListAsync();
             var addressDtos = _mapper.Map<List<AddressDto>>(addresses);
             return Ok(addressDtos);
         }

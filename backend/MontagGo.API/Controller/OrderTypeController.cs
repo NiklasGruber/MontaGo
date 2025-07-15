@@ -24,7 +24,7 @@ namespace MontagGo.API.Controller
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var types = await _context.OrderTypes.ToListAsync();
+            var types = await _context.OrderTypes.Where(x => x.DeletedAt == null).ToListAsync();
             var typeDtos = _mapper.Map<List<OrderTypeDto>>(types);
             return Ok(typeDtos);
         }
@@ -46,6 +46,17 @@ namespace MontagGo.API.Controller
             if (type == null) return NotFound();
 
             _mapper.Map(typeDto, type);
+            _context.Entry(type).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+            return NoContent();
+        }
+
+        [HttpPut("{id}/color")]
+        public async Task<IActionResult> UpdateColor(int id, [FromBody] string color)
+        {
+            var type = await _context.OrderTypes.FindAsync(id);
+            if (type == null) return NotFound();
+            type.ColorHex = color; // Assuming OrderType has a Color property
             _context.Entry(type).State = EntityState.Modified;
             await _context.SaveChangesAsync();
             return NoContent();

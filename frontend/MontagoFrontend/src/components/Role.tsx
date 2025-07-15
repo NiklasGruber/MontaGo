@@ -55,7 +55,7 @@ const RolePage: React.FC = () => {
   const handleDelete = async (id: number) => {
     if (!window.confirm("Möchtest du diese Rolle wirklich löschen?")) return;
     try {
-      await authAxios.delete(`/Role/${id}`);
+      await authAxios.delete(`/api/Role/${id}`);
       fetchRoles();
     } catch (error) {
       console.error("Fehler beim Löschen", error);

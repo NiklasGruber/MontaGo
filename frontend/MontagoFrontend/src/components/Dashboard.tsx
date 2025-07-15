@@ -5,27 +5,25 @@ import { EventClickArg } from "@fullcalendar/core";
 import { EventReceiveArg } from "@fullcalendar/interaction";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin, { Draggable } from "@fullcalendar/interaction";
-import authAxios from "../api/axios";
 import "../styles/calendar.css";
-import { OrderDto } from "../api/types";
+import { OrderDto, AddressDto, OrderDateUpdateDto, OrderTypeDto } from "../api/types";
+import orderapi from "../api/orderApi";
+import addressApi from "../api/addressApi";
+import orderTypeApi from "../api/orderTypeApi";
 
 const Dashboard: React.FC = () => {
   const [orders, setOrders] = useState<OrderDto[]>([]);
+  const [addresses, setAddresses] = useState<AddressDto[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<OrderDto | null>(null);
   const [calendarKey, setCalendarKey] = useState(0);
+  const [orderTypes, setOrderTypes] = useState<OrderTypeDto[]>([]);
 
   useEffect(() => {
-    fetchOrders();
-  }, []);
+    orderapi.fetchOrders().then((data) => setOrders(data ?? []));
+    addressApi.fetchAddresses().then((data) => setAddresses(data ?? []));
+    orderTypeApi.fetchOrderTypes().then((data) => setOrderTypes(data ?? []));
 
-  const fetchOrders = async () => {
-    try {
-      const response = await authAxios.get("/api/Orders");
-      setOrders(response.data);
-    } catch (err) {
-      console.error("Fehler beim Laden der Termine", err);
-    }
-  };
+  }, []);
 
   useEffect(() => {
     const externalContainer = document.getElementById("external-orders");
@@ -45,108 +43,118 @@ const Dashboard: React.FC = () => {
     }
   }, [orders]);
 
-  const activeOrders = orders.filter((o) => o.active);
-  const openOrders = orders.filter((o) => !o.active);
+  const activeOrders = (orders ?? []).filter((o) => o.active);
+  const openOrders = (orders ?? []).filter((o) => !o.active);
+
+  const getAddress = (id?: number) => addresses.find((a) => a.id === id);
 
   const handleEventClick = (info: EventClickArg) => {
     const order = orders.find((o) => o.id === parseInt(info.event.id));
     if (order) setSelectedOrder(order);
   };
 
-const isProcessing = useRef<boolean>(false);
+  const isProcessing = useRef<boolean>(false);
 
-const handleReceive = async (info: EventReceiveArg) => {
-  if (isProcessing.current) return;
-  isProcessing.current = true;
+  const handleReceive = async (info: EventReceiveArg) => {
+    if (isProcessing.current) return;
+    isProcessing.current = true;
 
-  try {
-    const id = parseInt(info.event.id);
-    const dropDate = info.event.start!;
-    const order = orders.find((o) => o.id === id);
-    if (!order) return;
+    try {
+      const id = parseInt(info.event.id);
+      const dropDate = info.event.start!;
+      const order = orders.find((o) => o.id === id);
+      if (!order) return;
 
-    const startDate = dropDate.toISOString();
-    const dueDate = new Date(dropDate.getTime() + 24 * 60 * 60 * 1000).toISOString();
+      const startDate = dropDate.toISOString();
+      const dueDate = new Date(dropDate.getTime() + 24 * 60 * 60 * 1000).toISOString();
 
-    const updated: OrderDto = {
-      ...order,
-      startDate,
-      dueDate,
-      endDate: dueDate,
-    };
+      console.log(`StartDate: ${startDate}`);
+      console.log(`DueDate: ${dueDate}`);
 
-    await authAxios.put(`/api/Orders/${id}`, updated);
-    await fetchOrders();
-    setCalendarKey((prev) => prev + 1);
-  } catch (err) {
-    console.error("Fehler beim Aktualisieren der Termine", err);
-  } finally {
-    isProcessing.current = false;
-  }
-};
+      const updated: OrderDateUpdateDto = {
+        id,
+        startDate,
+        dueDate,
+        endDate: dueDate,
+      };
 
+      await orderapi.updateOrderDate(updated);
+      const update = await orderapi.fetchOrders();
+      setOrders(update ?? []);
+      setCalendarKey((prev) => prev + 1);
+    } catch (err) {
+      console.error("Fehler beim Aktualisieren der Termine", err);
+    } finally {
+      isProcessing.current = false;
+    }
+  };
 
+  const getOrderTypeColor = (orderTypeId?: number) =>
+    orderTypes.find((t) => t.id === orderTypeId)?.colorHex ?? "#34d399";
 
   const calendarEvents = orders
     .filter((o) => o.startDate && o.dueDate)
-    .map((o) => ({
-      id: String(o.id),
-      title: o.name,
-      start: o.startDate!,
-      end: o.dueDate!,
-      color: o.active ? "#34d399" : "#facc15",
-      allDay: true,
-    }));
+    .map((o) => {
+      const addr = getAddress(o.deliveryAddressId);
+      return {
+        id: String(o.id),
+        title: `${o.name} - ${addr?.postalCode ?? ""} ${addr?.city ?? ""}`,
+        start: o.startDate!,
+        end: o.dueDate!,
+        color: getOrderTypeColor(o.orderTypeId),
+        allDay: true,
+      };
+    });
 
-    const handleResize = async (info: any) => {
-  const id = parseInt(info.event.id);
-  const order = orders.find((o) => o.id === id);
-  if (!order) return;
+  const handleResize = async (info: any) => {
+    const id = parseInt(info.event.id);
+    const order = orders.find((o) => o.id === id);
+    if (!order) return;
 
-  const newStartDate = info.event.start?.toISOString();
-  const newDueDate = info.event.end?.toISOString();
+    const newStartDate = info.event.start?.toISOString();
+    const newDueDate = info.event.end?.toISOString();
 
-  const updated: OrderDto = {
-    ...order,
-    startDate: newStartDate,
-    dueDate: newDueDate,
-    endDate: newDueDate,
+    const updated: OrderDateUpdateDto = {
+      id,
+      startDate: newStartDate,
+      dueDate: newDueDate,
+      endDate: newDueDate,
+    };
+
+    try {
+      await orderapi.updateOrderDate(updated);
+      const update = await orderapi.fetchOrders();
+      setOrders(update ?? []);
+      setCalendarKey((prev) => prev + 1);
+    } catch (err) {
+      console.error("Fehler beim Anpassen der Termine per Resize", err);
+    }
   };
 
-  try {
-    await authAxios.put(`/api/Orders/${id}`, updated);
-    await fetchOrders();
-    setCalendarKey((prev) => prev + 1);
-  } catch (err) {
-    console.error("Fehler beim Anpassen der Termine per Resize", err);
-  }
-};
+  const handleDrop = async (info: any) => {
+    const id = parseInt(info.event.id);
+    const order = orders.find((o) => o.id === id);
+    if (!order) return;
 
-const handleDrop = async (info: any) => {
-  const id = parseInt(info.event.id);
-  const order = orders.find((o) => o.id === id);
-  if (!order) return;
+    const newStartDate = info.event.start?.toISOString();
+    const newDueDate = info.event.end?.toISOString();
 
-  const newStartDate = info.event.start?.toISOString();
-  const newDueDate = info.event.end?.toISOString();
+    const updated: OrderDateUpdateDto = {
+      id,
+      startDate: newStartDate,
+      dueDate: newDueDate,
+      endDate: newDueDate,
+    };
 
-  const updated: OrderDto = {
-    ...order,
-    startDate: newStartDate,
-    dueDate: newDueDate,
-    endDate: newDueDate,
+    try {
+      await orderapi.updateOrderDate(updated);
+      const update = await orderapi.fetchOrders();
+      setOrders(update ?? []);
+      setCalendarKey((prev) => prev + 1);
+    } catch (err) {
+      console.error("Fehler beim Verschieben der Termine", err);
+    }
   };
-
-  try {
-    await authAxios.put(`/api/Orders/${id}`, updated);
-    await fetchOrders();
-    setCalendarKey((prev) => prev + 1);
-  } catch (err) {
-    console.error("Fehler beim Verschieben der Termine", err);
-  }
-};
-
-
 
   return (
     <div className="p-6">
@@ -160,7 +168,7 @@ const handleDrop = async (info: any) => {
         editable={true}
         droppable={true}
         eventReceive={handleReceive}
-        eventResize={handleResize}  
+        eventResize={handleResize}
         eventDrop={handleDrop}
         eventClick={handleEventClick}
         height="auto"
@@ -206,41 +214,61 @@ const handleDrop = async (info: any) => {
         <div>
           <h2 className="text-lg font-semibold mb-2">🟢 Aktive Termine</h2>
           <ul className="space-y-2">
-            {activeOrders.map((o) => (
-              <li
-                key={o.id}
-                className="p-3 bg-white shadow rounded border border-green-500"
-              >
-                <p className="font-medium text-sm text-neutral">
-                  #{o.id} – {o.name}
-                </p>
-                <p className="text-xs text-gray-500">
-                  {o.startDate
-                    ? `${new Date(o.startDate).toLocaleDateString()} → ${new Date(
+            {activeOrders.map((o) => {
+              const addr = getAddress(o.deliveryAddressId);
+              return (
+                <li
+                  key={o.id}
+                  className="p-3 bg-white shadow rounded border border-green-500"
+                >
+                  <p className="font-medium text-sm text-neutral">
+                    #{o.id} – {o.name}
+                  </p>
+                  {addr && (
+                    <p className="font-xs text-sm text-neutral" style={{ whiteSpace: "pre-line" }}>
+                      Straße: {addr.street ?? ""} {addr.houseNumber ?? ""}{"\n"}
+                      Ort: {addr.postalCode ?? ""} {addr.city ?? ""}, {addr.country ?? ""}{"\n"}
+                      {addr.additionalInfo ? `Zusatzinformationen: ${addr.additionalInfo}` : ""}
+                    </p>
+                  )}
+                  <p className="text-xs text-gray-500">
+                    {o.startDate
+                      ? `${new Date(o.startDate).toLocaleDateString()} → ${new Date(
                         o.dueDate!
                       ).toLocaleDateString()}`
-                    : "Noch nicht geplant"}
-                </p>
-              </li>
-            ))}
+                      : "Noch nicht geplant"}
+                  </p>
+                </li>
+              );
+            })}
           </ul>
         </div>
 
         <div>
           <h2 className="text-lg font-semibold mb-2">🟡 Offene Termine </h2>
           <ul className="space-y-2" id="external-orders">
-            {openOrders.map((o) => (
-              <li
-                key={o.id}
-                className="p-3 bg-white shadow rounded border border-yellow-400 fc-draggable-order cursor-move"
-                data-id={o.id}
-                data-title={`#${o.id} – ${o.name}`}
-              >
-                <p className="font-medium text-sm text-neutral">
-                  #{o.id} – {o.name}
-                </p>
-              </li>
-            ))}
+            {openOrders.map((o) => {
+              const addr = getAddress(o.deliveryAddressId);
+              return (
+                <li
+                  key={o.id}
+                  className="p-3 bg-white shadow rounded border border-yellow-400 fc-draggable-order cursor-move"
+                  data-id={o.id}
+                  data-title={`#${o.id} – ${o.name}`}
+                >
+                  <p className="font-medium text-sm text-neutral">
+                    #{o.id} – {o.name}
+                  </p>
+                  {addr && (
+                    <p className="font-xs text-sm text-neutral" style={{ whiteSpace: "pre-line" }}>
+                      Straße: {addr.street ?? ""} {addr.houseNumber ?? ""}{"\n"}
+                      Ort: {addr.postalCode ?? ""} {addr.city ?? ""}, {addr.country ?? ""}{"\n"}
+                      {addr.additionalInfo ? `Zusatzinformationen: ${addr.additionalInfo}` : ""}
+                    </p>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         </div>
       </div>

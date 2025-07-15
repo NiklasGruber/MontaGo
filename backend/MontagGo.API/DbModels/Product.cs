@@ -1,6 +1,6 @@
 ﻿namespace MontagGo.API.DbModels
 {
-    public class Product
+    public class Product : TrackableEntity
     {
         public int Id { get; set; }
         public string Name { get; set; }

@@ -1,7 +1,12 @@
 import * as React from "react";
 import { useEffect, useState } from "react";
-import authAxios from "../api/axios";
 import { ProductDto, OrderDto } from "../api/types";
+import addressApi from "../api/addressApi";
+import customerApi from "../api/customerApi";
+import orderTypesApi from "../api/orderTypeApi";
+import employeeApi from "../api/employeeApi";
+import productApi from "../api/productApi";
+import orderApi from "../api/orderApi";
 
 interface OrderCreateFormProps {
   onCreated?: () => void;
@@ -15,17 +20,17 @@ const OrderCreateForm: React.FC<OrderCreateFormProps> = ({ onCreated, order }) =
   const [workers, setWorkers] = useState<any[]>([]);
   const [products, setProducts] = useState<ProductDto[]>([]);
 
-const [orderState, setOrder] = useState({
-  name: order?.name ?? "",
-  startDate: order?.startDate ?? "",
-  dueDate: order?.dueDate ?? "",
-  customerId: order?.customerId ?? 0,
-  orderTypeId: order?.orderTypeId ?? 0,
-  billingAddressId: order?.billingAddressId ?? 0,
-  deliveryAddressId: order?.deliveryAddressId ?? 0,
-  productIds: order?.itemsId ?? [],
-  workerIds: order?.assignedWorkerIds ?? [],
-});
+  const [orderState, setOrder] = useState({
+    name: order?.name ?? "",
+    startDate: order?.startDate ?? "",
+    dueDate: order?.dueDate ?? "",
+    customerId: order?.customerId ?? 0,
+    orderTypeId: order?.orderTypeId ?? 0,
+    billingAddressId: order?.billingAddressId ?? 0,
+    deliveryAddressId: order?.deliveryAddressId ?? 0,
+    productIds: order?.productIds ?? [],
+    workerIds: order?.assignedWorkerIds ?? [],
+  });
 
   const [selectedProductsWithPrice, setSelectedProductsWithPrice] = useState<
     { productId: number; price: number }[]
@@ -34,23 +39,32 @@ const [orderState, setOrder] = useState({
   useEffect(() => {
     const loadData = async () => {
       const [c, a, o, w, p] = await Promise.all([
-        authAxios.get("/api/Customer"),
-        authAxios.get("/api/Address"),
-        authAxios.get("/api/OrderType"),
-        authAxios.get("/api/Worker"),
-        authAxios.get("/api/Product"),
+        customerApi.fetchCustomers(),
+        addressApi.fetchAddresses(),
+        orderTypesApi.fetchOrderTypes(),
+        employeeApi.fetchEmployees(),
+        productApi.fetchProducts(),
       ]);
-      setCustomers(c.data);
-      setAddresses(a.data);
-      setOrderTypes(o.data);
-      setWorkers(w.data);
-      setProducts(p.data);
 
-      if (c.data.length > 0) {
-        setOrder((prev) => ({ ...prev, customerId: c.data[0].id }));
+      console.log("Geladene Daten:", {
+        customers: c,
+        addresses: a,
+        orderTypes: o,
+        workers: w,
+        products: p,
+      });
+
+      setCustomers(c);
+      setAddresses(a);
+      setOrderTypes(o);
+      setWorkers(w);
+      setProducts(p);
+
+      if (c.length > 0) {
+        setOrder((prev) => ({ ...prev, customerId: c[0].id }));
       }
-      if (o.data.length > 0) {
-        setOrder((prev) => ({ ...prev, orderTypeId: o.data[0].id }));
+      if (o.length > 0) {
+        setOrder((prev) => ({ ...prev, orderTypeId: o[0].id }));
       }
     };
 
@@ -76,17 +90,34 @@ const [orderState, setOrder] = useState({
 
   const handleSubmit = async () => {
     const productIds = selectedProductsWithPrice.map((x) => x.productId);
-  const payload = { 
-      ...orderState, 
-      productIds,
-      startDate: orderState.startDate === "" ? null : orderState.startDate,
-      dueDate: orderState.dueDate === "" ? null : orderState.dueDate,
-    };    
 
-    console.log("Sende Termine:", payload); // 🔍 Debug-Ausgabe
+    // Ensure dates are always ISO strings
+
+  const minValue = "0001-01-01T00:00:00Z";
+    const startDate = orderState.startDate ? new Date(orderState.startDate).toISOString() : minValue;
+    const dueDate = orderState.dueDate ? new Date(orderState.dueDate).toISOString() : minValue;
+    const endDate = dueDate;
+
+    console.log(`StartDate: ${startDate}`);
+    console.log(`DueDate: ${dueDate}`);
+
+    const payload = {
+      name: orderState.name,
+      customerId: orderState.customerId,
+      orderTypeId: orderState.orderTypeId,
+      billingAddressId: orderState.billingAddressId,
+      deliveryAddressId: orderState.deliveryAddressId,
+      productIds: productIds.length > 0 ? productIds : [0],
+      workerIds: orderState.workerIds.length > 0 ? orderState.workerIds : [0],
+      startDate,
+      dueDate,
+      endDate,
+    };
+
+    console.log("Sende Order-Payload:", payload);
 
     try {
-      await authAxios.post("/api/Orders", payload);
+      await orderApi.postOrder(payload);
       onCreated?.();
       alert("Termine erfolgreich erstellt.");
     } catch (err) {
@@ -100,14 +131,14 @@ const [orderState, setOrder] = useState({
       <h2 className="text-xl font-bold mb-4 text-primary">Neue Termine</h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <input
-    name="name"
-    type="text"
-    placeholder="Auftragsname"
-    value={orderState.name}
-    onChange={handleChange}
-    className="border p-2 rounded"
-  />
+        <input
+          name="name"
+          type="text"
+          placeholder="Auftragsname"
+          value={orderState.name}
+          onChange={handleChange}
+          className="border p-2 rounded"
+        />
         <select
           name="customerId"
           value={orderState.customerId}
@@ -152,7 +183,7 @@ const [orderState, setOrder] = useState({
 
         <select
           name="deliveryAddressId"
-          value={orderState.deliveryAddressId}
+          value={orderState.deliveryAddressId ?? 0}
           onChange={handleChange}
           className="border p-2 rounded"
         >
@@ -165,20 +196,20 @@ const [orderState, setOrder] = useState({
         </select>
       </div>
 
-  <input
-    name="startDate"
-    type="date"
-    value={orderState.startDate}
-    onChange={handleChange}
-    className="border p-2 rounded"
-  />
-  <input
-    name="dueDate"
-    type="date"
-    value={orderState.dueDate}
-    onChange={handleChange}
-    className="border p-2 rounded"
-  />
+      <input
+        name="startDate"
+        type="date"
+        value={orderState.startDate}
+        onChange={handleChange}
+        className="border p-2 rounded"
+      />
+      <input
+        name="dueDate"
+        type="date"
+        value={orderState.dueDate}
+        onChange={handleChange}
+        className="border p-2 rounded"
+      />
 
       <div className="mt-4">
         <h3 className="font-semibold text-sm mb-1">📦 Produkte mit Preis</h3>

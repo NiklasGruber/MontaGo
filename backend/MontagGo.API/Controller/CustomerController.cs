@@ -23,9 +23,10 @@ namespace MontagGo.API.Controller
         public async Task<ActionResult<IEnumerable<CustomerDto>>> GetCustomers()
         {
             var customers = await _context.Customers
-                .Include(c => c.Address) // Include Address navigation property
+                .Include(c => c.Address)
+                 .Where(x => x.DeletedAt == null)// Include Address navigation property
                 .Select(c => _mapper.Map<CustomerDto>(c)) // Map Customer to CustomerDto
-                .ToListAsync();
+                             .ToListAsync();
 
             return Ok(customers);
         }
