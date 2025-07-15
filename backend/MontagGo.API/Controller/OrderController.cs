@@ -25,7 +25,7 @@ namespace MontagGo.API.Controller
         [HttpGet]
         public async Task<IActionResult> GetAllOrders()
         {
-            var orders = await _context.Orders.ToListAsync();
+            var orders = await _context.Orders.Where(x => x.DeletedAt == null).ToListAsync();
 
             // Manuelles Mapping der abhängigen Entitäten für das DTO
             var orderDtos = new List<OrderDto>();
@@ -78,7 +78,7 @@ namespace MontagGo.API.Controller
         [HttpGet("{id}")]
         public async Task<IActionResult> GetOrder(int id)
         {
-            var order = await _context.Orders.FirstOrDefaultAsync(o => o.Id == id);
+            var order = await _context.Orders.FirstOrDefaultAsync(o => o.Id == id && o.DeletedAt != null);
             if (order == null)
                 return NotFound();
 

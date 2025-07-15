@@ -1,7 +1,7 @@
 import authAxios from "./axios";
 import { OrderTypeDto } from "./types";
 
-export const fetchOrderTypes = async () => {
+export const fetchOrderTypes = async () : Promise<OrderTypeDto[]> => {
     try {
         const response = await authAxios.get<OrderTypeDto[]>("/api/OrderType");
         return response.data;
@@ -15,6 +15,14 @@ export const putOrderType = async (orderType: OrderTypeDto) => {
         await authAxios.put(`/api/OrderType/${orderType.id}`, orderType);
     } catch (error) {
         console.error("Error updating order type", error);
+    }
+};
+
+export const updateColor = async (orderType: OrderTypeDto) => {
+    try {
+        await authAxios.put(`/api/OrderType/${orderType.id}/color`, { color: orderType.colorHex });
+    } catch (error) {
+        console.error("Error updating order type color", error);    
     }
 };
 
@@ -37,6 +45,7 @@ export const deleteOrderType = async (id: number) => {
 export default {
     fetchOrderTypes,
     putOrderType,
+    updateColor,
     postOrderType,
     deleteOrderType
 };

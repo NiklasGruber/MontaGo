@@ -1,5 +1,5 @@
 import authAxios from "./axios";
-import { OrderDateUpdateDto, OrderDto } from "./types";
+import { CreateOrderDto, OrderDateUpdateDto, OrderDto } from "./types";
 
 const fetchOrders = async (): Promise<OrderDto[]> => {
     try {
@@ -40,7 +40,7 @@ const updateOrderDate = async (update: OrderDateUpdateDto) => {
     }
 }
 
-const postOrder = async (order: OrderDto) => {
+const postOrder = async (order: CreateOrderDto) => {
     try {
         await authAxios.post("/api/Orders", order);
     } catch (err) {

@@ -12,6 +12,7 @@ export interface OrderTypeDto {
   id?: number;
   name?: string;
   description?: string;
+  colorHex?: string;
 }
 
 export interface WorkerDto {
@@ -30,13 +31,26 @@ export interface OrderDto {
   orderTypeId: number;
   billingAddressId: number;
   deliveryAddressId: number;
-  itemsId: number[];
+  productIds: number[];
   assignedWorkerIds: number[];
   createdAt: string;
   startDate?: string;
   dueDate: string;
   endDate?: string;
     active: boolean;
+}
+
+export interface CreateOrderDto {
+  name: string;
+  customerId: number;
+  orderTypeId: number;
+  billingAddressId: number;
+  deliveryAddressId: number;
+  productIds: number[];
+  workerIds: number[];
+  startDate: string;
+  dueDate: string;
+  endDate: string;
 }
 
 export interface OrderDateUpdateDto{

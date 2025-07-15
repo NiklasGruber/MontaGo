@@ -2,17 +2,22 @@ import * as React from "react";
 import { useEffect, useState } from "react";
 import authAxios from "../api/axios";
 import { OrderTypeDto } from "../api/types";
+import orderTypeApi from "../api/orderTypeApi";
 
 const OrderTypePage: React.FC = () => {
   const [types, setTypes] = useState<OrderTypeDto[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [selected, setSelected] = useState<OrderTypeDto>({ name: "", description: "" });
+  const [selected, setSelected] = useState<OrderTypeDto>({
+    name: "",
+    description: "",
+    colorHex: "#34d399",
+  });
 
   const fetchTypes = async () => {
     try {
-      const res = await authAxios.get<OrderTypeDto[]>("/api/OrderType");
-      setTypes(res.data);
+      const res = await orderTypeApi.fetchOrderTypes();
+      setTypes(res);
     } catch (err) {
       console.error("Fehler beim Laden der Auftragstypen", err);
     }
@@ -25,12 +30,14 @@ const OrderTypePage: React.FC = () => {
   const handleSubmit = async () => {
     try {
       if (isEditing && selected.id !== undefined) {
-        await authAxios.put(`/api/OrderType/${selected.id}`, selected);
+        console.log(`Color: ${selected.colorHex}`);
+        await orderTypeApi.putOrderType(selected);
       } else {
-        await authAxios.post("/api/OrderType", selected);
+        console.log(`Color: ${selected.colorHex}`);
+        await orderTypeApi.postOrderType(selected);
       }
       setShowModal(false);
-      setSelected({ name: "", description: "" });
+      setSelected({ name: "", description: "", colorHex: "#34d399" });
       setIsEditing(false);
       fetchTypes();
     } catch (err) {
@@ -39,7 +46,10 @@ const OrderTypePage: React.FC = () => {
   };
 
   const handleEdit = (type: OrderTypeDto) => {
-    setSelected(type);
+    setSelected({
+      ...type,
+      colorHex: type.colorHex ?? "#34d399",
+    });
     setIsEditing(true);
     setShowModal(true);
   };
@@ -47,14 +57,16 @@ const OrderTypePage: React.FC = () => {
   const handleDelete = async (id?: number) => {
     if (!id || !window.confirm("Wirklich löschen?")) return;
     try {
-      await authAxios.delete(`/api/OrderType/${id}`);
+      await orderTypeApi.deleteOrderType(id);
       fetchTypes();
     } catch (err) {
       console.error("Fehler beim Löschen", err);
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
     setSelected((prev) => ({ ...prev, [name]: value }));
   };
@@ -65,7 +77,7 @@ const OrderTypePage: React.FC = () => {
         <h1 className="text-2xl font-bold text-primary">Auftragstypen</h1>
         <button
           onClick={() => {
-            setSelected({ name: "", description: "" });
+            setSelected({ name: "", description: "", colorHex: "#34d399" });
             setIsEditing(false);
             setShowModal(true);
           }}
@@ -82,10 +94,27 @@ const OrderTypePage: React.FC = () => {
             className="p-4 bg-white rounded shadow border border-neutral relative"
           >
             <div className="absolute top-2 right-2 flex gap-2 text-sm">
-              <button onClick={() => handleEdit(type)} title="Bearbeiten">✏️</button>
-              <button onClick={() => handleDelete(type.id)} title="Löschen">🗑️</button>
+              <button onClick={() => handleEdit(type)} title="Bearbeiten">
+                ✏️
+              </button>
+              <button onClick={() => handleDelete(type.id)} title="Löschen">
+                🗑️
+              </button>
             </div>
-            <p className="font-medium text-neutral">{type.name}</p>
+            <p className="font-medium text-neutral flex items-center gap-2">
+              <span
+                style={{
+                  display: "inline-block",
+                  width: "16px",
+                  height: "16px",
+                  background: type.colorHex ?? "#34d399",
+                  borderRadius: "4px",
+                  marginRight: "6px",
+                  border: "1px solid #ccc",
+                }}
+              ></span>
+              {type.name}
+            </p>
             <p className="text-sm text-gray-500">{type.description}</p>
           </li>
         ))}
@@ -113,6 +142,15 @@ const OrderTypePage: React.FC = () => {
               value={selected.description}
               onChange={handleChange}
               className="border p-2 rounded w-full mb-3"
+            />
+
+            <label className="block mb-2 font-medium">Farbe</label>
+            <input
+              type="color"
+              name="colorHex"
+              value={selected.colorHex ?? "#34d399"}
+              onChange={handleChange}
+              className="w-12 h-8 p-0 border-none mb-3 cursor-pointer"
             />
 
             <div className="flex justify-end gap-2">

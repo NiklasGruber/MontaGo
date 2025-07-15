@@ -16,7 +16,7 @@ namespace MontagGo.API.Controller
 
         [HttpGet]
         public async Task<IActionResult> GetAll() =>
-            Ok(await _context.Users.ToListAsync());
+            Ok(await _context.Users.Where(x => x.DeletedAt == null).ToListAsync());
 
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(int id) =>

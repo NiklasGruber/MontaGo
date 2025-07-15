@@ -25,7 +25,7 @@ namespace MontagGo.API.Controller
         [HttpGet]
         public async Task<ActionResult<IEnumerable<OrderItemDto>>> GetOrderItems()
         {
-            var orderItems = await _context.OrderItems.ToListAsync();
+            var orderItems = await _context.OrderItems.Where(x => x.DeletedAt == null).ToListAsync();
             return Ok(_mapper.Map<IEnumerable<OrderItemDto>>(orderItems));
         }
 

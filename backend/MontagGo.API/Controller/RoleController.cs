@@ -27,7 +27,7 @@ namespace MontagGo.API.Controller
         [HttpGet]
         public async Task<ActionResult<IEnumerable<RoleDto>>> GetRoles()
         {
-            var roles = await _context.Roles.ToListAsync();
+            var roles = await _context.Roles.Where(x => x.DeletedAt == null).ToListAsync();
             return Ok(_mapper.Map<IEnumerable<RoleDto>>(roles));
         }
 

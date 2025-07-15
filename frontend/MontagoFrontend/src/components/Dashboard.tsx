@@ -6,19 +6,23 @@ import { EventReceiveArg } from "@fullcalendar/interaction";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin, { Draggable } from "@fullcalendar/interaction";
 import "../styles/calendar.css";
-import { OrderDto, AddressDto, OrderDateUpdateDto } from "../api/types";
+import { OrderDto, AddressDto, OrderDateUpdateDto, OrderTypeDto } from "../api/types";
 import orderapi from "../api/orderApi";
 import addressApi from "../api/addressApi";
+import orderTypeApi from "../api/orderTypeApi";
 
 const Dashboard: React.FC = () => {
   const [orders, setOrders] = useState<OrderDto[]>([]);
   const [addresses, setAddresses] = useState<AddressDto[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<OrderDto | null>(null);
   const [calendarKey, setCalendarKey] = useState(0);
+  const [orderTypes, setOrderTypes] = useState<OrderTypeDto[]>([]);
 
   useEffect(() => {
     orderapi.fetchOrders().then((data) => setOrders(data ?? []));
     addressApi.fetchAddresses().then((data) => setAddresses(data ?? []));
+    orderTypeApi.fetchOrderTypes().then((data) => setOrderTypes(data ?? []));
+
   }, []);
 
   useEffect(() => {
@@ -64,6 +68,9 @@ const Dashboard: React.FC = () => {
       const startDate = dropDate.toISOString();
       const dueDate = new Date(dropDate.getTime() + 24 * 60 * 60 * 1000).toISOString();
 
+      console.log(`StartDate: ${startDate}`);
+      console.log(`DueDate: ${dueDate}`);
+
       const updated: OrderDateUpdateDto = {
         id,
         startDate,
@@ -82,6 +89,9 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  const getOrderTypeColor = (orderTypeId?: number) =>
+    orderTypes.find((t) => t.id === orderTypeId)?.colorHex ?? "#34d399";
+
   const calendarEvents = orders
     .filter((o) => o.startDate && o.dueDate)
     .map((o) => {
@@ -91,7 +101,7 @@ const Dashboard: React.FC = () => {
         title: `${o.name} - ${addr?.postalCode ?? ""} ${addr?.city ?? ""}`,
         start: o.startDate!,
         end: o.dueDate!,
-        color: o.active ? "#34d399" : "#facc15",
+        color: getOrderTypeColor(o.orderTypeId),
         allDay: true,
       };
     });
@@ -224,8 +234,8 @@ const Dashboard: React.FC = () => {
                   <p className="text-xs text-gray-500">
                     {o.startDate
                       ? `${new Date(o.startDate).toLocaleDateString()} → ${new Date(
-                          o.dueDate!
-                        ).toLocaleDateString()}`
+                        o.dueDate!
+                      ).toLocaleDateString()}`
                       : "Noch nicht geplant"}
                   </p>
                 </li>

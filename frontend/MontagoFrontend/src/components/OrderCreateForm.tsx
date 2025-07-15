@@ -26,9 +26,9 @@ const OrderCreateForm: React.FC<OrderCreateFormProps> = ({ onCreated, order }) =
     dueDate: order?.dueDate ?? "",
     customerId: order?.customerId ?? 0,
     orderTypeId: order?.orderTypeId ?? 0,
-    billingAddress: order?.billingAddressId ?? 0,
-    deliveryAddress: order?.deliveryAddressId ?? 0,
-    productIds: order?.itemsId ?? [],
+    billingAddressId: order?.billingAddressId ?? 0,
+    deliveryAddressId: order?.deliveryAddressId ?? 0,
+    productIds: order?.productIds ?? [],
     workerIds: order?.assignedWorkerIds ?? [],
   });
 
@@ -91,27 +91,30 @@ const OrderCreateForm: React.FC<OrderCreateFormProps> = ({ onCreated, order }) =
   const handleSubmit = async () => {
     const productIds = selectedProductsWithPrice.map((x) => x.productId);
 
-    console.log("Ausgewählte Produkte mit Preisen:", selectedProductsWithPrice);
-    console.log(orderState);
-    console.log(orderState.billingAddress);
+    // Ensure dates are always ISO strings
 
-    const payload: OrderDto = {
-      id: order?.id ?? 0,
+  const minValue = "0001-01-01T00:00:00Z";
+    const startDate = orderState.startDate ? new Date(orderState.startDate).toISOString() : minValue;
+    const dueDate = orderState.dueDate ? new Date(orderState.dueDate).toISOString() : minValue;
+    const endDate = dueDate;
+
+    console.log(`StartDate: ${startDate}`);
+    console.log(`DueDate: ${dueDate}`);
+
+    const payload = {
       name: orderState.name,
       customerId: orderState.customerId,
       orderTypeId: orderState.orderTypeId,
-      billingAddressId: orderState.billingAddress,
-      deliveryAddressId: orderState.deliveryAddress,
-      itemsId: productIds,
-      assignedWorkerIds: orderState.workerIds,
-      createdAt: order?.createdAt ?? new Date().toISOString(),
-      startDate: orderState.startDate === "" ? undefined : orderState.startDate,
-      dueDate: orderState.dueDate === "" ? undefined : orderState.dueDate,
-      endDate: order?.endDate,
-      active: true,
+      billingAddressId: orderState.billingAddressId,
+      deliveryAddressId: orderState.deliveryAddressId,
+      productIds: productIds.length > 0 ? productIds : [0],
+      workerIds: orderState.workerIds.length > 0 ? orderState.workerIds : [0],
+      startDate,
+      dueDate,
+      endDate,
     };
 
-    console.log("Sende Termine:", payload); // 🔍 Debug-Ausgabe
+    console.log("Sende Order-Payload:", payload);
 
     try {
       await orderApi.postOrder(payload);
@@ -166,7 +169,7 @@ const OrderCreateForm: React.FC<OrderCreateFormProps> = ({ onCreated, order }) =
 
         <select
           name="billingAddressId"
-          value={orderState.billingAddress}
+          value={orderState.billingAddressId}
           onChange={handleChange}
           className="border p-2 rounded"
         >
@@ -180,7 +183,7 @@ const OrderCreateForm: React.FC<OrderCreateFormProps> = ({ onCreated, order }) =
 
         <select
           name="deliveryAddressId"
-          value={orderState.deliveryAddress ?? 0}
+          value={orderState.deliveryAddressId ?? 0}
           onChange={handleChange}
           className="border p-2 rounded"
         >
